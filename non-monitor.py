@@ -3,13 +3,21 @@ import pandas as pd
 import time
 import subprocess
 from threading import Thread
+import re
+from datetime import datetime
 
 networks = pd.DataFrame(columns=["BSSID", "SSID", "dBm_Signal", "Channel", "Crypto"])
 networks.set_index("BSSID", inplace=True)
 
+def clear_screen():
+    if os.name == 'posix':
+        os.system('clear')
+    else:
+        os.system('cls')
+
 def print_all():
     while True:
-        os.system("clear")
+        clear_screen()
         print(networks)
         time.sleep(0.5)
 
@@ -27,11 +35,31 @@ def scan_networks(interface='en0'):
             crypto = parts[-1]
             networks.loc[bssid] = [ssid, rssi, channel, crypto]
 
+def ping_network(duration=5, host="google.com"):
+    ping_cmd = f"ping -c {duration} {host}"
+    output = subprocess.check_output(ping_cmd, shell=True).decode('utf-8')
+    match = re.search(r'round-trip min/avg/max/stddev = (.*)/(.*)/(.*)/(.*) ms', output)
+    if match:
+        avg_speed = float(match.group(2))
+        return avg_speed
+    else:
+        return None
+
 if __name__ == "__main__":
     printer = Thread(target=print_all)
     printer.daemon = True
     printer.start()
 
+    counter = 0  # Keep track of the number of rows written
     while True:
         scan_networks()
-        time.sleep(5)
+        avg_speed = ping_network()
+        if avg_speed is not None:
+            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            print(f"{timestamp} - Average network speed: {avg_speed} ms")
+            with open("network_speed.txt", "a") as file:
+                file.write(f"{timestamp} - Average network speed: {avg_speed} ms\n")
+                if counter < 2:  # Add an extra newline after the first and second rows
+                    file.write("\n")
+                counter += 1
+        time.sleep(10)
