@@ -45,6 +45,17 @@ def ping_network(duration=5, host="google.com"):
     else:
         return None
 
+def get_dhcp_info(interface='en0'):
+    dhcp_cmd = f"ipconfig getpacket {interface}"
+    output = subprocess.check_output(dhcp_cmd, shell=True).decode('utf-8')
+    dhcp_info = {}
+    for line in output.split('\n'):
+        if ':' in line:
+            key, value = line.split(':', 1)
+            dhcp_info[key.strip()] = value.strip()
+    return dhcp_info
+
+
 if __name__ == "__main__":
     printer = Thread(target=print_all)
     printer.daemon = True
@@ -62,4 +73,13 @@ if __name__ == "__main__":
                 if counter < 2:  # Add an extra newline after the first and second rows
                     file.write("\n")
                 counter += 1
+
+        dhcp_info = get_dhcp_info()
+        print(f"DCHP Info: {dhcp_info}")
+        with open("dhcp_info.txt", "a") as file:
+            file.write(f"{timestamp} - DHCP Info: {dhcp_info}\n")
+            if counter < 2:  
+                file.write("\n")
+
         time.sleep(10)
+
