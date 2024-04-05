@@ -35,6 +35,19 @@ def scan_networks(interface='en0'):
             crypto = parts[-1]
             networks.loc[bssid] = [ssid, rssi, channel, crypto]
 
+def get_dhcp_lease_time(interface='en0'):
+    lease_time = None
+    try:
+        output = subprocess.check_output(['ipconfig', 'getoption', interface, 'lease_time'], stderr=subprocess.STDOUT).decode('utf-8').strip()
+        lease_time = int(output)
+    except subprocess.CalledProcessError as e:
+        lease_time = f"Error: {e.output.decode('utf-8').strip()}"
+    except Exception as e:
+        lease_time = f"Error: {str(e)}"
+
+    return lease_time
+
+
 def ping_network(duration=5, host="google.com"):
     ping_cmd = f"ping -c {duration} {host}"
     output = subprocess.check_output(ping_cmd, shell=True).decode('utf-8')
@@ -45,17 +58,6 @@ def ping_network(duration=5, host="google.com"):
     else:
         return None
 
-def get_dhcp_info(interface='en0'):
-    dhcp_cmd = f"ipconfig getpacket {interface}"
-    output = subprocess.check_output(dhcp_cmd, shell=True).decode('utf-8')
-    dhcp_info = {}
-    for line in output.split('\n'):
-        if ':' in line:
-            key, value = line.split(':', 1)
-            dhcp_info[key.strip()] = value.strip()
-    return dhcp_info
-
-
 if __name__ == "__main__":
     printer = Thread(target=print_all)
     printer.daemon = True
@@ -65,21 +67,17 @@ if __name__ == "__main__":
     while True:
         scan_networks()
         avg_speed = ping_network()
+        dhcp_lease_time = get_dhcp_lease_time()
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         if avg_speed is not None:
-            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            print(f"{timestamp} - Average network speed: {avg_speed} ms")
+            print(f"{timestamp} - Average network speed: {avg_speed} ms, DHCP Lease Time: {dhcp_lease_time}")
             with open("network_speed.txt", "a") as file:
-                file.write(f"{timestamp} - Average network speed: {avg_speed} ms\n")
+                file.write(f"{timestamp} - Average network speed: {avg_speed} ms, DHCP Lease Time: {dhcp_lease_time}\n")
                 if counter < 2:  # Add an extra newline after the first and second rows
                     file.write("\n")
                 counter += 1
-
-        dhcp_info = get_dhcp_info()
-        print(f"DCHP Info: {dhcp_info}")
-        with open("dhcp_info.txt", "a") as file:
-            file.write(f"{timestamp} - DHCP Info: {dhcp_info}\n")
-            if counter < 2:  
-                file.write("\n")
-
+        # Write DHCP lease time to a separate file
+        with open("dhcp_lease.txt", "a") as file:
+            file.write(f"{timestamp} - DHCP Lease Time: {dhcp_lease_time}\n")
         time.sleep(10)
 
