@@ -1,0 +1,28 @@
+# Dependency directories
+node_modules/
+  
+# npm cache directory
+.npm
+
+# eslint cache
+.eslintcache
+
+# .env local environment variable files, used for future!
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+#  MacOS folder attribute files
+.DS_Store
+
+#  Windows thumbnail cache files
+Thumbs.db
+
+# Yarn integrity files
+.yarn-integrity
+
+# Build output directory
+build/
+

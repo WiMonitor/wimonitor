@@ -80,4 +80,3 @@ if __name__ == "__main__":
         with open("dhcp_lease.txt", "a") as file:
             file.write(f"{timestamp} - DHCP Lease Time: {dhcp_lease_time}\n")
         time.sleep(10)
-
