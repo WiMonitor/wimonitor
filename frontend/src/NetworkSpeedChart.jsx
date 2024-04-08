@@ -43,7 +43,7 @@ const NetworkSpeedChart = () => {
         type: 'time',
         time: {
           unit: 'hour',
-          tooltipFormat: 'MMM D, h:mm a'
+          tooltipFormat: 'MMM d, h:mm a'
         },
         title: {
           display: true,
