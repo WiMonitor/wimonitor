@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { Line } from 'react-chartjs-2';
 import axios from 'axios';
+import { Chart, registerables} from 'chart.js';
+import { Line } from 'react-chartjs-2';
+import 'chartjs-adapter-date-fns';
+Chart.register(...registerables);
 
 const NetworkSpeedChart = () => {
   const [chartData, setChartData] = useState({ datasets: [] });
@@ -29,7 +32,6 @@ const NetworkSpeedChart = () => {
         console.error('Error fetching data:', error);
       });
   }, []);
-
 
   const options = {
     scales: {
