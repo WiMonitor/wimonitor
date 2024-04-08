@@ -9,28 +9,32 @@ const NetworkSpeedChart = () => {
   const [chartData, setChartData] = useState({ datasets: [] });
 
   useEffect(() => {
-    axios.get('http://localhost:5000/network_speed')
-      .then(response => {
-        if (Array.isArray(response.data)) {
-          setChartData({
-            datasets: [
-              {
-                label: 'Network Speed',
-                data: response.data.map(item => ({
-                  x: item.timestamp, 
-                  y: item.speed,
-                })),
-                fill: false,
-                borderColor: 'rgb(75, 192, 192)',
-                tension: 0.1
-              }
-            ]
-          });
-        }
-      })
-      .catch(error => {
-        console.error('Error fetching data:', error);
-      });
+    const intervalId = setInterval(() => {
+      axios.get('http://localhost:5000/network_speed')
+        .then(response => {
+          if (Array.isArray(response.data)) {
+            setChartData({
+              datasets: [
+                {
+                  label: 'Network Speed',
+                  data: response.data.map(item => ({
+                    x: new Date(item.timestamp), 
+                    y: item.speed,
+                  })),
+                  fill: false,
+                  borderColor: 'rgb(75, 192, 192)',
+                  tension: 0.1
+                }
+              ]
+            });
+          }
+        })
+        .catch(error => {
+          console.error('Error fetching data:', error);
+        });
+    }, 10000); // Update every 10 seconds
+
+    return () => clearInterval(intervalId);
   }, []);
 
   const options = {

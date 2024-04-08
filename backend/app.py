@@ -10,6 +10,32 @@ CORS(app)
 client = MongoClient('mongodb://localhost:27017/')
 db = client.network_db
 
+scanning = False
+
+def scan_and_log():
+    global scanning
+    while scanning:
+        scan_networks()
+        avg_speed = ping_network()
+        dhcp_lease_time = get_dhcp_lease_time()
+        timestamp = datetime.datetime.now()
+        if avg_speed is not None:
+            db.network_speed.insert_one({'speed': avg_speed, 'timestamp': timestamp, 'dhcp_lease_time': dhcp_lease_time})
+        time.sleep(10)
+
+@app.route('/start_scan', methods=['POST'])
+def start_scan():
+    global scanning
+    if not scanning:
+        scanning = True
+        Thread(target=scan_and_log).start()
+    return jsonify({'status': 'Scanning started'})
+
+@app.route('/stop_scan', methods=['POST'])
+def stop_scan():
+    global scanning
+    scanning = False
+    return jsonify({'status': 'Scanning stopped'})
 
 def scan_networks(interface='en0'):
     airport_path = "/System/Library/PrivateFrameworks/Apple80211.framework/Versions/Current/Resources/airport"
@@ -56,9 +82,10 @@ def get_networks():
 
 @app.route('/network_speed', methods=['GET'])
 def get_network_speed_history():
-    speed = ping_network()
-    db.network_speed.insert_one({'speed': speed, 'timestamp': datetime.datetime.now()})
-    return jsonify({'speed': speed})
+    now = datetime.datetime.now()
+    start_time = now - datetime.timedelta(hours=24)
+    speed_data = list(db.network_speed.find({'timestamp': {'$gte': start_time}}, {'_id': 0}))
+    return jsonify(speed_data)
 
 @app.route('/dhcp_lease_time', methods=['GET'])
 def get_lease_time():
