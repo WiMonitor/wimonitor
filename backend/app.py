@@ -102,7 +102,6 @@ def nmap_scan():
     target = "192.168.1.1"  # Replace with the target IP or range
     scan_type = "-sS"  # SYN scan
 
-    # Ensure you have error handling for security and execution control
     try:
         # Build the nmap command
         command = f"nmap {scan_type} {target}"
