@@ -95,5 +95,24 @@ def get_lease_time():
     db.dhcp_lease_time.insert_one({'lease_time': lease_time, 'timestamp': datetime.datetime.now()})
     return jsonify({'lease_time': lease_time})
 
+
+@app.route('/nmap-scan', methods=['GET'])
+def nmap_scan():
+    # Define the target and the type of scan you want to perform
+    target = "192.168.1.1"  # Replace with the target IP or range
+    scan_type = "-sS"  # SYN scan
+
+    # Ensure you have error handling for security and execution control
+    try:
+        # Build the nmap command
+        command = f"nmap {scan_type} {target}"
+        # Split the command to pass it safely to subprocess
+        args = shlex.split(command)
+        # Execute the nmap command
+        output = subprocess.check_output(args).decode('utf-8')
+        return jsonify({'result': output})
+    except subprocess.CalledProcessError as e:
+        return jsonify({'error': str(e)}), 500
+
 if __name__ == '__main__':
     app.run(debug=True)
