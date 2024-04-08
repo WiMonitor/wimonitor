@@ -8,7 +8,7 @@ const Nmap = () => {
   const handleScan = async () => {
     setIsScanning(true);
     try {
-      const response = await axios.get('http://localhost:5000/nmap-scan');
+      const response = await axios.get('http://localhost:5000/nmap');
       setScanResult(response.data.result);
     } catch (error) {
       console.error('Error performing Nmap scan:', error);

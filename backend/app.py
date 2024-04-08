@@ -6,6 +6,7 @@ import re
 import datetime
 from threading import Thread
 import time
+import shlex
 
 app = Flask(__name__)
 CORS(app)
@@ -92,15 +93,17 @@ def get_network_speed_history():
 @app.route('/dhcp_lease_time', methods=['GET'])
 def get_lease_time():
     lease_time = get_dhcp_lease_time()
-    db.dhcp_lease_time.insert_one({'lease_time': lease_time, 'timestamp': datetime.datetime.now()})
-    return jsonify({'lease_time': lease_time})
+    timestamp = datetime.datetime.now().isoformat()  # Convert to ISO 8601 format
+    db.dhcp_lease_time.insert_one({'lease_time': lease_time, 'timestamp': timestamp})
+    return jsonify({'lease_time': lease_time, 'timestamp': timestamp})
 
 
-@app.route('/nmap-scan', methods=['GET'])
-def nmap_scan():
+
+@app.route('/nmap', methods=['GET'])
+def nmap():
     # Define the target and the type of scan you want to perform
     target = "192.168.1.1"  # Replace with the target IP or range
-    scan_type = "-sS"  # SYN scan
+    scan_type = "-sT"  # SYN scan
 
     try:
         # Build the nmap command
