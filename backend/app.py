@@ -1,4 +1,4 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from flask_cors import CORS
 from pymongo import MongoClient
 import subprocess
@@ -7,6 +7,8 @@ import datetime
 from threading import Thread
 import time
 import shlex
+import socket
+
 
 app = Flask(__name__)
 CORS(app)
@@ -98,11 +100,10 @@ def get_lease_time():
     return jsonify({'lease_time': lease_time, 'timestamp': timestamp})
 
 
-
 @app.route('/nmap', methods=['GET'])
 def nmap():
     # Define the target and the type of scan you want to perform
-    target = "192.168.1.1"  # Replace with the target IP or range
+    target = "10.141.20.201"  # Replace with the target IP or range
     scan_type = "-sT"  # SYN scan
 
     try:
@@ -115,6 +116,73 @@ def nmap():
         return jsonify({'result': output})
     except subprocess.CalledProcessError as e:
         return jsonify({'error': str(e)}), 500
+
+
+@app.route('/ntp_sources', methods=['GET'])
+def get_ntp_details():
+    try:
+        result = subprocess.run(['ntpq', '-p'], capture_output=True, text=True, check=True)
+        lines = result.stdout.splitlines()
+        details = []
+        if len(lines) > 2:
+            headers = lines[1].split()  # This line typically contains the headers if formatting is consistent
+            for line in lines[2:]:
+                parts = line.split()
+                details.append({
+                    'remote': parts[0],
+                    'ref_id': parts[1],
+                    'stratum': parts[2],
+                    'type': parts[3],
+                    'when': parts[4],
+                    'poll': parts[5],
+                    'reach': parts[6],
+                    'delay': parts[7],
+                    'offset': parts[8],
+                    'jitter': parts[9]
+                })
+        return jsonify(details)
+    except subprocess.CalledProcessError as error:
+        return jsonify({'error': 'Failed to execute ntpq', 'message': str(error)}), 500
+
+
+@app.route('/dns_check', methods=['GET'])
+def dns_check():
+    hostname = request.args.get('hostname', default='google.com', type=str)
+    dns_server = request.args.get('dns_server', default='8.8.8.8', type=str)  # This is just for informational display now.
+
+    try:
+        # Check DNS server reachability
+        sock = socket.create_connection((dns_server, 53), timeout=5)
+        sock.close()
+        dns_reachable = True
+    except Exception as e:
+        dns_reachable = False
+        dns_error = str(e)
+
+    # Attempt to resolve hostname
+    try:
+        # Using the system's resolver settings, which we cannot change here
+        ip_addresses = socket.getaddrinfo(hostname, None)
+        resolution_success = True
+        resolved_ips = [ip[4][0] for ip in ip_addresses if ip[4][0]]  # Gather all resolved IP addresses
+    except Exception as e:
+        resolution_success = False
+        resolution_error = str(e)
+        resolved_ips = []
+
+    response = {
+        'dns_server': dns_server,  # Displayed for informational purposes
+        'dns_reachable': dns_reachable,
+        'hostname': hostname,
+        'resolution_success': resolution_success,
+        'resolved_ips': resolved_ips
+    }
+    if not dns_reachable:
+        response['dns_error'] = dns_error
+    if not resolution_success:
+        response['resolution_error'] = resolution_error
+
+    return jsonify(response)
 
 if __name__ == '__main__':
     app.run(debug=True)
