@@ -2,37 +2,68 @@
   text-align: center;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+nav {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  z-index: 100;
+  background-color: #333; /* Ensure the background color covers the entire nav bar */
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
+nav ul {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
+  justify-content: space-around;
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
+nav li a {
+  display: block;
   color: white;
+  text-align: center;
+  padding: 14px 16px;
+  text-decoration: none;
 }
 
-.App-link {
-  color: #61dafb;
+nav li a:hover, nav li a:focus {
+  background-color: #111;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
+body {
+  padding-top: 60px; /* Adjust this value if your nav bar is taller or shorter */
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+  nav ul {
+    flex-direction: column;
+    width: 100%;
   }
-  to {
-    transform: rotate(360deg);
+
+  nav li a {
+    padding: 10px;
+    text-align: left;
+  }
+
+  nav ul.collapsed {
+    display: none;
+  }
+
+  .nav-toggle {
+    display: block;
+    background-color: #333;
+    color: white;
+    padding: 10px 20px;
+    font-size: 1rem;
+    border: none;
+    width: 100%;
+  }
+}
+
+/* Styles to hide the toggle button on larger screens */
+@media (min-width: 769px) {
+  .nav-toggle {
+    display: none;
   }
 }
