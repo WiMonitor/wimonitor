@@ -26,3 +26,6 @@ Thumbs.db
 # Build output directory
 build/
 
+# pycache
+__pycache__/*
+
