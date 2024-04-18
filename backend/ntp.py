@@ -21,6 +21,7 @@ def test_ntp_servers(servers):
             responses[server]["server_responded_on"] = response.tx_time # the time the NTP response was sent by the server
             responses[server]["local_received_on"] = response.dest_time # the time the NTP response was received by the client
             responses[server]["offset"] = response.offset # MOST IMPORTANT METRIC: the offset between local time and server time
+            responses[server]["stratum"] = response.stratum # the stratum of the server
             
             if abs(response.offset) > config.NTP_OFFSET_THRESHOLD: # test offset against threshold
                 responses[server]["status"] = "failed"
