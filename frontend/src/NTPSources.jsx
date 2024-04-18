@@ -2,46 +2,53 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
 const NTPSources = () => {
-    const [sources, setSources] = useState([]);
+    const [sources, setSources] = useState({});
     const [error, setError] = useState('');
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        fetchNTPSources();
-    }, []);
-
-    const fetchNTPSources = async () => {
-        try {
-            const response = await axios.get('http://localhost:5000/ntp_sources');
-            setSources(response.data);
-            if (response.data.length === 0) {
-                setError('No NTP sources found.');
+        const fetchNTPSources = async () => {
+            try {
+                const response = await axios.get('http://localhost:5000/ntp_sources');
+                setSources(response.data);
+                if (Object.keys(response.data).length === 0) {
+                    setError('No NTP sources found.');
+                }
+            } catch (error) {
+                setError('Failed to fetch NTP sources: ' + error.message);
+            } finally {
+                setLoading(false);
             }
-        } catch (error) {
-            setError('Failed to fetch NTP sources: ' + error.message);
-        }
-    };
+        };
+
+        fetchNTPSources();
+    }, []); // Empty dependency array for component mount only
+
+    if (loading) {
+        return <p>Loading NTP sources...</p>;
+    }
+
+    if (error) {
+        return <p>{error}</p>;
+    }
 
     return (
         <div>
             <h2>NTP Sources</h2>
-            {error ? <p>{error}</p> : sources.length > 0 ? (
+            
+            {Object.keys(sources).length > 0 ? (
                 <div className="card-container">
-                    {sources.map((source, index) => (
-                        <div className="card" key={index}>
-                            <h4>{source.remote}</h4>
-                            <p><strong>Reference ID:</strong> {source.ref_id}</p>
-                            <p><strong>Stratum:</strong> {source.stratum}</p>
-                            <p><strong>Type:</strong> {source.type}</p>
-                            <p><strong>Time since last poll:</strong> {source.when} seconds</p>
-                            <p><strong>Poll interval:</strong> {source.poll} seconds</p>
-                            <p><strong>Reachability:</strong> {source.reach}</p>
-                            <p><strong>Delay:</strong> {source.delay} ms</p>
-                            <p><strong>Offset:</strong> {source.offset} ms</p>
-                            <p><strong>Jitter:</strong> {source.jitter} ms</p>
-                        </div>
+                    {Object.keys(sources).map((key) => (
+                        <div key={key} className="card">
+                            <h3>{key}</h3>
+                            <p>Status: {sources[key].status}</p>
+                            <p>Offset: {(parseFloat(sources[key].offset)*1000).toFixed(2)} ms</p>
+                            <p>Request Sent On: {new Date(sources[key].local_sent_on).toLocaleTimeString()}</p>
+                            <p>Response Received On: {new Date(parseInt(1713464655)).toLocaleTimeString()}</p>
+                            </div>
                     ))}
                 </div>
-            ) : <p>Loading NTP sources...</p>}
+            ) : <p>No sources to display.</p>}
         </div>
     );
 };
