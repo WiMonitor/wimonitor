@@ -24,7 +24,7 @@ function App() {
             <li><Link to="/">Home</Link></li>
             <li><Link to="/dashboard">Dashboard</Link></li>
             <li><Link to="/network-speed">Network Speed</Link></li>
-            <li><Link to="/dhcp_lease_time">DHCP Info</Link></li>
+            <li><Link to="/dhcp_pool">DHCP Info</Link></li>
             <li><Link to="/nmap">Nmap</Link></li>
             <li><Link to="/ntp-sources">NTP Sources</Link></li> 
             <li><Link to="/dns-lookup">DNS Lookup</Link></li> 
@@ -33,7 +33,7 @@ function App() {
         <Routes>
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/network-speed" element={<NetworkSpeedChart />} />
-          <Route path="/dhcp_lease_time" element={<DhcpInfo />} />
+          <Route path="/dhcp_pool" element={<DhcpInfo />} />
           <Route path="/nmap" element={<Nmap />} />
           <Route path="/ntp-sources" element={<NTPSources />} />
           <Route path="/dns-lookup" element={<DNSLookup />} /> 
