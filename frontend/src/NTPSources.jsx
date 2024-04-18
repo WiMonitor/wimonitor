@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import './NTPSources.css';
 
 const NTPSources = () => {
     const [sources, setSources] = useState([]);
