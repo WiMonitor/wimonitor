@@ -16,10 +16,10 @@ def test_ntp_servers(servers):
         try:
             response = client.request(server)
             responses[server] = {}
-            responses[server]["local-sent-on"] = response.orig_time # the time the NTP request was sent
-            responses[server]["server-received-on"] = response.recv_time # the time the NTP request was received by the server
-            responses[server]["server-responded-on"] = response.tx_time # the time the NTP response was sent by the server
-            responses[server]["local-received-on"] = response.dest_time # the time the NTP response was received by the client
+            responses[server]["local_sent_on"] = response.orig_time # the time the NTP request was sent
+            responses[server]["server_received_on"] = response.recv_time # the time the NTP request was received by the server
+            responses[server]["server_responded_on"] = response.tx_time # the time the NTP response was sent by the server
+            responses[server]["local_received_on"] = response.dest_time # the time the NTP response was received by the client
             responses[server]["offset"] = response.offset # MOST IMPORTANT METRIC: the offset between local time and server time
             
             if abs(response.offset) > config.NTP_OFFSET_THRESHOLD: # test offset against threshold
