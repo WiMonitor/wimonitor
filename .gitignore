@@ -27,5 +27,7 @@ Thumbs.db
 build/
 
 # pycache
+*/__pycache__/*
 __pycache__/*
+
 
