@@ -67,3 +67,28 @@ body {
     display: none;
   }
 }
+
+/* Styles for NTPSources Cards */
+.card-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+    gap: 20px;
+}
+
+.card {
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    padding: 20px;
+    width: 300px;
+}
+
+.card h4 {
+    margin-top: 0;
+}
+
+.card p {
+    margin: 5px 0;
+}
