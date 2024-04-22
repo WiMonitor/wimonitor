@@ -134,8 +134,7 @@ def ntp_test():
 @app.route('/ntp_sources', methods=['POST'])
 def customize_ntp_test():
     servers = request.json.get('ntp_servers', [])
-    print(servers)
-    ntp_results = test_ntp_servers(servers) # TODO: revert to the actual one
+    ntp_results = test_ntp_servers(servers)
     return jsonify(ntp_results)
 
 if __name__ == '__main__':

@@ -134,3 +134,40 @@ body {
   display: flex;
   flex-wrap: wrap;
 }
+
+.textbox {
+  width: 100%;
+  height: 100px;
+  padding: 10px;
+  margin: 5px 0;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+/* Style for buttons */
+button {
+  background-color: #4CAF50; /* Green */
+  border: none;
+  color: white;
+  padding: 10px 20px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  margin: 4px 2px;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+button:hover {
+  background-color: #45a049;
+}
+
+.card-container-vertical {
+  display: flex;
+  flex-direction: column;
+  justify-content:space-evenly;
+  align-content: flex-start;
+  row-gap: 20px;
+  margin: 0 auto;
+}
