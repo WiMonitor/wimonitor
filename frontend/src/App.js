@@ -49,8 +49,8 @@ function Home() {
   
   
   const handleSubmit = (e) => {
-    sessionStorage.setItem('backendUrl', backendUrl);
-    sessionStorage.setItem('port', port);
+    localStorage.setItem('backendUrl', backendUrl);
+    localStorage.setItem('port', port);
     alert('Backend URL and Port saved successfully');
   }
 
@@ -67,8 +67,8 @@ function Home() {
       </form>
       <br />
       <p>Current Setting:</p>
-      <label>Backend URL: {sessionStorage.getItem('backendUrl') === null ? "Not Set": sessionStorage.getItem('backendUrl')}; </label>
-      <label>Port: {sessionStorage.getItem('port') === null ? "Not Set": sessionStorage.getItem('port')}</label>
+      <label>Backend URL: {localStorage.getItem('backendUrl') === null ? "Not Set": localStorage.getItem('backendUrl')}; </label>
+      <label>Port: {localStorage.getItem('port') === null ? "Not Set": localStorage.getItem('port')}</label>
     </div>
   );
 }
