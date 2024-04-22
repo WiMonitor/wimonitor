@@ -46,7 +46,7 @@ const NTPSources = () => {
             }
 
             // make a request to the backend
-            const response = await axios.post(`http://${backendUrl}:${port}/ntp_sources`, { ntp_servers: cNtpServers.split('\n') });
+            const response = await axios.post(`http://${backendUrl}:${port}/ntp_sources`, { ntp_servers: cNtpServers.trim().split('\n') });
             setCustomTestResults(response.data);
             setCustomTestError('');
             if (Object.keys(response.data).length === 0) {
