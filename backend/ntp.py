@@ -33,7 +33,8 @@ def test_ntp_servers(servers):
             responses[server] = None
             print(f"Error: {e}, server: {server} not online")
         except Exception as e:
-            print(f"Error: {e}")
+            responses[server] = None
+            print(f"Error: {e}") # TODO: maybe it can be passed to frontend?
             
     return responses
         
