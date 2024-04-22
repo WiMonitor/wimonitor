@@ -44,19 +44,11 @@ function App() {
 }
 
 function Home() {
-  const [backendUrl, setBackendUrl] = useState(() => {
-    const savedUrl = localStorage.getItem('backendUrl');
-    return savedUrl ? savedUrl : '';
-  });
-  
-  const [port, setPort] = useState(() => {
-    const savedPort = localStorage.getItem('port');
-    return savedPort ? savedPort : '';
-  });
+  const [backendUrl, setBackendUrl] = useState('');
+  const [port, setPort] = useState('');
   
   
   const handleSubmit = (e) => {
-    e.preventDefault();
     sessionStorage.setItem('backendUrl', backendUrl);
     sessionStorage.setItem('port', port);
     alert('Backend URL and Port saved successfully');
@@ -73,6 +65,10 @@ function Home() {
         <input id='Port' type="text" name="port" value={port} onChange={(e) => setPort(e.target.value)} />
         <button type="submit">Save</button>
       </form>
+      <br />
+      <p>Current Setting:</p>
+      <label>Backend URL: {sessionStorage.getItem('backendUrl') === null ? "Not Set": sessionStorage.getItem('backendUrl')}; </label>
+      <label>Port: {sessionStorage.getItem('port') === null ? "Not Set": sessionStorage.getItem('port')}</label>
     </div>
   );
 }

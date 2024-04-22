@@ -72,8 +72,8 @@ body {
 .card-container {
     display: flex;
     flex-wrap: wrap;
-    justify-content: space-around;
-    gap: 20px;
+    justify-content: space-evenly;
+    gap: 40px;
 }
 
 .card {
