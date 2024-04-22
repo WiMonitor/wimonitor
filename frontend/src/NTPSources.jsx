@@ -4,13 +4,14 @@ import axios from 'axios';
 const NTPSources = () => {
     const [sources, setSources] = useState({});
     const [error, setError] = useState('');
+    const [cNtpServers, setCNtpServers] = useState([]);
     
     useEffect(() => {
         const fetchNTPSources = async () => {
             try {
                 // get backendUrl and port from sessionStorage
-                const backendUrl = sessionStorage.getItem('backendUrl');
-                const port = sessionStorage.getItem('port');
+                const backendUrl = localStorage.getItem('backendUrl');
+                const port = localStorage.getItem('port');
                 if (!backendUrl || !port || backendUrl === '' || port === '') {
                     setError('Please set backend URL and port in the settings.');
                     return;
@@ -33,15 +34,16 @@ const NTPSources = () => {
     if (error) {
         return (
             <div>
-                <h2>NTP Sources</h2>
+                <h2>NTP Error</h2>
                 <p>{error}</p>
             </div>
         );
     }
 
     return (
-        <div>
-            <h2>NTP Sources</h2>
+        <div className='page-container'>
+        <div className='ntp-local'>
+            <h2>Local NTP Status</h2>
             
             {Object.keys(sources).length > 0 ? (
                 <div className="card-container">
@@ -66,7 +68,12 @@ const NTPSources = () => {
                             
                     ))}
                 </div>
-            ) : <p>Loading NTP Sources</p>}
+            ) : <p>Loading Local NTP Sources</p>}
+        </div>
+        <div className='ntp-custom'>
+            <h2>Other NTP Servers</h2>
+        </div>
+
         </div>
     );
 };
