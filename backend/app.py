@@ -12,7 +12,7 @@ import socket
 import config
 from dhcp import scan_dhcp_pool, get_lease_info
 from dns2 import test_local_dns_servers
-from ntp import test_local_ntp_servers
+from ntp import test_local_ntp_servers, test_ntp_servers
 
 from flask import Flask, jsonify, request
 from flask_cors import CORS
@@ -129,6 +129,13 @@ def dns_check():
 @app.route('/ntp_sources', methods=['GET'])
 def ntp_test():
     ntp_results = test_local_ntp_servers()
+    return jsonify(ntp_results)
+
+@app.route('/ntp_sources', methods=['POST'])
+def customize_ntp_test():
+    servers = request.json.get('servers', [])
+    print(servers)
+    ntp_results = test_ntp_servers(['time.google.com']) # TODO: revert to the actual one
     return jsonify(ntp_results)
 
 if __name__ == '__main__':
