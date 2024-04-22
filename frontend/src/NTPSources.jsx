@@ -50,8 +50,8 @@ const NTPSources = () => {
                             <h3>{key}</h3>
                             <p>Status: {sources[key].status}</p>
                             <p>Offset: {(parseFloat(sources[key].offset)*1000).toFixed(2)} ms</p>
-                            <p>Request Sent On: {new Date(sources[key].local_sent_on).toLocaleTimeString()}</p>
-                            <p>Response Received On: {new Date(parseInt(1713464655)).toLocaleTimeString()}</p>
+                            <p>Request Sent On: {new Date(parseInt(sources[key].local_sent_on)*1000).toLocaleTimeString()}</p>
+                            <p>Response Received On: {new Date(parseInt(sources[key].local_received_on)*1000).toLocaleTimeString()}</p>
                             </div>
                     ))}
                 </div>
