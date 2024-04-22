@@ -46,13 +46,24 @@ const NTPSources = () => {
             {Object.keys(sources).length > 0 ? (
                 <div className="card-container">
                     {Object.keys(sources).map((key) => (
-                        <div key={key} className="card">
+                        <div key={key} className={
+                            sources[key] === null ? 'card card-error' : 
+                            sources[key].status === 'failed' ? 'card card-warning' : 'card card-success'
+                        }>
                             <h3>{key}</h3>
-                            <p>Status: {sources[key].status}</p>
-                            <p>Offset: {(parseFloat(sources[key].offset)*1000).toFixed(2)} ms</p>
-                            <p>Request Sent On: {new Date(parseInt(sources[key].local_sent_on)*1000).toLocaleTimeString()}</p>
-                            <p>Response Received On: {new Date(parseInt(sources[key].local_received_on)*1000).toLocaleTimeString()}</p>
-                            </div>
+                            {sources[key] === null ? <p>No Response</p>:(
+                                <div>
+                                    <p>Status: {sources[key].status}</p>
+                                    <p>Offset: {(parseFloat(sources[key].offset)*1000).toFixed(2)} ms</p>
+                                    <p>Stratum: {sources[key].stratum}</p>
+                                    <p>Request Sent On: {new Date(parseInt(sources[key].local_sent_on)*1000).toLocaleTimeString()}</p>
+                                    <p>Response Received On: {new Date(parseInt(sources[key].local_received_on)*1000).toLocaleTimeString()}</p>
+                                    <p>Delay: {parseFloat(sources[key].delay).toFixed(2)}s</p>
+                                </div>
+                            )
+                            }
+                        </div>
+                            
                     ))}
                 </div>
             ) : <p>Loading NTP Sources</p>}
