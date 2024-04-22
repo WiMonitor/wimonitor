@@ -35,6 +35,7 @@ const NTPSources = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setCustomTestResults({});
         try {
             // get backendUrl and port from sessionStorage
             const backendUrl = localStorage.getItem('backendUrl');
