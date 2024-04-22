@@ -10,7 +10,6 @@ import DNSLookup from './DNSLookup.jsx';
 
 function App() {
   const [isNavCollapsed, setIsNavCollapsed] = useState(true);
-
   const handleToggle = () => {
     setIsNavCollapsed(!isNavCollapsed);
   };
@@ -44,11 +43,38 @@ function App() {
   );
 }
 
-const Home = () => (
-  <div>
-    <h1>Welcome to the Network Monitoring App</h1>
-    <p>Select a page from the menu above to get started.</p>
-  </div>
-);
+function Home() {
+  const [backendUrl, setBackendUrl] = useState(() => {
+    const savedUrl = localStorage.getItem('backendUrl');
+    return savedUrl ? savedUrl : '';
+  });
+  
+  const [port, setPort] = useState(() => {
+    const savedPort = localStorage.getItem('port');
+    return savedPort ? savedPort : '';
+  });
+  
+  
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    sessionStorage.setItem('backendUrl', backendUrl);
+    sessionStorage.setItem('port', port);
+    alert('Backend URL and Port saved successfully');
+  }
+
+  return (
+    <div>
+      <h1>Welcome to the Network Monitoring App</h1>
+      <p>Select a page from the menu above to get started.</p>
+      <form onSubmit={handleSubmit}>
+        <label htmlFor='Backend URL'>Backend URL:</label>
+        <input id='Backend URL' type="text" name="backendUrl" value={backendUrl} onChange={(e) => setBackendUrl(e.target.value)} />
+        <label htmlFor='Port'>Port:</label>
+        <input id='Port' type="text" name="port" value={port} onChange={(e) => setPort(e.target.value)} />
+        <button type="submit">Save</button>
+      </form>
+    </div>
+  );
+}
 
 export default App;

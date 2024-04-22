@@ -4,32 +4,39 @@ import axios from 'axios';
 const NTPSources = () => {
     const [sources, setSources] = useState({});
     const [error, setError] = useState('');
-    const [loading, setLoading] = useState(true);
-
+    
     useEffect(() => {
         const fetchNTPSources = async () => {
             try {
-                const response = await axios.get('http://localhost:5000/ntp_sources');
+                // get backendUrl and port from sessionStorage
+                const backendUrl = sessionStorage.getItem('backendUrl');
+                const port = sessionStorage.getItem('port');
+                if (!backendUrl || !port || backendUrl === '' || port === '') {
+                    setError('Please set backend URL and port in the settings.');
+                    return;
+                }
+
+                // make a request to the backend
+                const response = await axios.get(`http://${backendUrl}:${port}/ntp_sources`);
                 setSources(response.data);
                 if (Object.keys(response.data).length === 0) {
                     setError('No NTP sources found.');
                 }
             } catch (error) {
-                setError('Failed to fetch NTP sources: ' + error.message);
-            } finally {
-                setLoading(false);
+                setError('Error fetching NTP srouces: ' + error.message);
             }
         };
 
         fetchNTPSources();
-    }, []); // Empty dependency array for component mount only
-
-    if (loading) {
-        return <p>Loading NTP sources...</p>;
-    }
+    }, []);
 
     if (error) {
-        return <p>{error}</p>;
+        return (
+            <div>
+                <h2>NTP Sources</h2>
+                <p>{error}</p>
+            </div>
+        );
     }
 
     return (
@@ -48,7 +55,7 @@ const NTPSources = () => {
                             </div>
                     ))}
                 </div>
-            ) : <p>No sources to display.</p>}
+            ) : <p>Loading NTP Sources</p>}
         </div>
     );
 };
