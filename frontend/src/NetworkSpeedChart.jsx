@@ -9,8 +9,14 @@ const NetworkSpeedChart = () => {
   const [chartData, setChartData] = useState({ datasets: [] });
 
   useEffect(() => {
+    const backendUrl = localStorage.getItem('backendUrl');
+    const port = localStorage.getItem('port');
+    if (!backendUrl || !port || backendUrl === '' || port === '') {
+        setError('Please set backend URL and port in the settings.');
+        return;
+    }
     const intervalId = setInterval(() => {
-      axios.get('http://localhost:5000/network_speed')
+      axios.get(`http://${backendUrl}:${port}/network_speed`)
         .then(response => {
           if (Array.isArray(response.data)) {
             setChartData({

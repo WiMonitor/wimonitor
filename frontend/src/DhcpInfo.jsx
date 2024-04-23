@@ -7,7 +7,14 @@ const DhcpInfo = () => {
   useEffect(() => {
     const fetchDhcpData = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/dhcp_pool');
+        const backendUrl = localStorage.getItem('backendUrl');
+        const port = localStorage.getItem('port');
+        if (!backendUrl || !port || backendUrl === '' || port === '') {
+            setError('Please set backend URL and port in the settings.');
+            return;
+        }
+
+        const response = await axios.get(`http://${backendUrl}:${port}/dhcp_pool`);
         console.log('Data received:', response.data);
         setDhcpData(prevData => [...prevData, response.data]);
       } catch (error) {

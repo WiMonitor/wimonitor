@@ -8,7 +8,13 @@ const Nmap = () => {
   const handleScan = async () => {
     setIsScanning(true);
     try {
-      const response = await axios.get('http://localhost:5000/nmap');
+      const backendUrl = localStorage.getItem('backendUrl');
+      const port = localStorage.getItem('port');
+      if (!backendUrl || !port || backendUrl === '' || port === '') {
+          setError('Please set backend URL and port in the settings.');
+          return;
+      }
+      const response = await axios.get(`http://${backendUrl}:${port}/nmap`);
       setScanResult(response.data.result);
     } catch (error) {
       console.error('Error performing Nmap scan:', error);
