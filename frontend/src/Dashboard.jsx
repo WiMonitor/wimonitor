@@ -5,10 +5,18 @@ import NetworkSpeedChart from './NetworkSpeedChart.jsx';
 
 const Dashboard = () => {
   const [speedData, setSpeedData] = useState([]);
+  const [error, setError] = useState('');
 
   useEffect(() => {
+    const backendUrl = localStorage.getItem('backendUrl');
+    const port = localStorage.getItem('port');
+    if (!backendUrl || !port || backendUrl === '' || port === '') {
+        setError('Please set backend URL and port in the settings.');
+        return;
+    }
+
     const intervalId = setInterval(() => {
-      axios.get('http://localhost:5000/network_speed')
+      axios.get(`http://${backendUrl}:${port}/network_speed`)
         .then(result => {
           setSpeedData(result.data);
         });
@@ -18,11 +26,23 @@ const Dashboard = () => {
   }, []);
 
   const startScan = () => {
-    axios.post('http://localhost:5000/start_scan');
+    const backendUrl = localStorage.getItem('backendUrl');
+    const port = localStorage.getItem('port');
+    if (!backendUrl || !port || backendUrl === '' || port === '') {
+        setError('Please set backend URL and port in the settings.');
+        return;
+    }
+    axios.post(`http://${backendUrl}:${port}/start_scan`);
   };
 
   const stopScan = () => {
-    axios.post('http://localhost:5000/stop_scan');
+    const backendUrl = localStorage.getItem('backendUrl');
+    const port = localStorage.getItem('port');
+    if (!backendUrl || !port || backendUrl === '' || port === '') {
+        setError('Please set backend URL and port in the settings.');
+        return;
+    }
+    axios.post(`http://${backendUrl}:${port}/stop_scan`);
   };
 
   return (

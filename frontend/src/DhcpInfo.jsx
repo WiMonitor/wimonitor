@@ -3,6 +3,7 @@ import axios from 'axios';
 
 const DhcpInfo = () => {
   const [dhcpData, setDhcpData] = useState([]);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     const fetchDhcpData = async () => {

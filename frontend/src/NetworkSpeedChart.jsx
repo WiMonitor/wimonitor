@@ -7,6 +7,7 @@ Chart.register(...registerables);
 
 const NetworkSpeedChart = () => {
   const [chartData, setChartData] = useState({ datasets: [] });
+  const [error, setError] = useState('');
 
   useEffect(() => {
     const backendUrl = localStorage.getItem('backendUrl');

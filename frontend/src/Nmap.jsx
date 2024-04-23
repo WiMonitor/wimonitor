@@ -4,6 +4,7 @@ import axios from 'axios';
 const Nmap = () => {
   const [scanResult, setScanResult] = useState('');
   const [isScanning, setIsScanning] = useState(false);
+  const [error, setError] = useState('');
 
   const handleScan = async () => {
     setIsScanning(true);
