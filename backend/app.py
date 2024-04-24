@@ -103,21 +103,18 @@ def get_network_speed_history():
 @app.route('/dhcp_pool', methods=['GET'])
 def dhcp_pool():
     try:
-        # Get DHCP pool information
-        stat_dict, ip_addrs = scan_dhcp_pool()
-
-        # Get lease information
-        lease_info = get_lease_info()
-
-        # Return both sets of information in one response
-        return jsonify({
-            'status': 'success',
-            'stats': stat_dict,
-            'addresses': ip_addrs,
-            'lease_info': lease_info
-        })
+        return scan_dhcp_pool()
     except Exception as e:
-        return jsonify({'status': 'error', 'message': str(e)}), 500
+        return jsonify({'message': str(e)}), 500
+    
+
+@app.route('/dhcp_lease', methods=['GET'])
+def dhcp_lease():
+    try:
+        lease_info = get_lease_info()
+        return lease_info
+    except Exception as e:
+        return jsonify({'message': str(e)}), 500
 
 
 @app.route('/dns_check', methods=['GET'])
