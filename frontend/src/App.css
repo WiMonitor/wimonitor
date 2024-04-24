@@ -84,7 +84,7 @@ body {
     border-radius: 10px;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     padding: 20px;
-    width: 300px;
+    width: auto;
 }
 .card-error {
     background: #f8d7da;
@@ -122,17 +122,18 @@ body {
 .ntp-local {
   width: 60%;
   background-color: #fff;
-  padding: 20px;
 }
 
 .ntp-custom {
+  min-width: 200px;
   background-color: #fff;
-  padding: 20px;
 }
 
 .page-container {
   display: flex;
   flex-wrap: wrap;
+  min-width: 500px;
+  padding: 20px;
 }
 
 .textbox {
@@ -142,6 +143,15 @@ body {
   margin: 5px 0;
   border: 1px solid #ccc;
   border-radius: 5px;
+}
+
+.dhcp-lease{
+  width: 50%;
+  padding: 0 20px;
+}
+
+.dhcp-pool{
+
 }
 
 /* Style for buttons */
