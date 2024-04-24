@@ -1,4 +1,4 @@
-import subprocess, re, os, config
+import subprocess, re, time, config
 from config import selected_interface as iface
 
 
@@ -36,9 +36,9 @@ def scan_dhcp_pool():
 
     # 3. Extract statistics
     stat = re.findall(r"\d+\.?\d*", output.split("\n")[-2])
-    stat_dict = {"scanned": stat[0], "up": stat[1], "time": stat[2]}
-
-    return stat_dict, ip_addrs
+    usage = "Normal" if int(stat[1])/int(stat[0]) < config.DHCP_USAGE_THRESHOLD else "High"
+    stat_dict = {"scanned": stat[0], "up": stat[1], "time": stat[2], "ip_addrs": ip_addrs, "usage": usage}
+    return stat_dict
 
 
 def get_lease_info():
@@ -58,15 +58,15 @@ def get_lease_info():
     # 2. Parse the lease data
     fields = {
         "ip": "fixed-address\s(\d+\.\d+\.\d+\.\d+);",
-        "subnet-mask": "option\ssubnet-mask\s(\d+\.\d+\.\d+\.\d+);",
-        "domain-name-servers": "option\sdomain-name-servers\s(\d+\.\d+\.\d+\.\d+);",
-        "dhcp-server": "option\sdhcp-server-identifier\s(\d+\.\d+\.\d+\.\d+);",
-        "dhcp-lease-time": "option\sdhcp-lease-time\s(\d+);",
-        "dhcp-renewal-time": "option\sdhcp-renewal-time\s(\d+);",
-        "dhcp-rebinding-time": "option\sdhcp-rebinding-time\s(\d+);",
-        "renew-at": "renew\s\d+\s(\d{4}/\d{2}/\d{2}\s\d{2}:\d{2}:\d{2});",
-        "rebind-at": "rebind\s\d+\s(\d{4}/\d{2}/\d{2}\s\d{2}:\d{2}:\d{2});",
-        "expire-at": "expire\s\d+\s(\d{4}/\d{2}/\d{2}\s\d{2}:\d{2}:\d{2});",
+        "subnet_mask": "option\ssubnet-mask\s(\d+\.\d+\.\d+\.\d+);",
+        "domain_name_servers": "option\sdomain-name-servers\s(\d+\.\d+\.\d+\.\d+);",
+        "dhcp_server": "option\sdhcp-server-identifier\s(\d+\.\d+\.\d+\.\d+);",
+        "dhcp_lease_time": "option\sdhcp-lease-time\s(\d+);",
+        "dhcp_renewal_time": "option\sdhcp-renewal-time\s(\d+);",
+        "dhcp_rebinding_time": "option\sdhcp-rebinding-time\s(\d+);",
+        "renew_at": "renew\s\d+\s(\d{4}/\d{2}/\d{2}\s\d{2}:\d{2}:\d{2});",
+        "rebind_at": "rebind\s\d+\s(\d{4}/\d{2}/\d{2}\s\d{2}:\d{2}:\d{2});",
+        "expire_at": "expire\s\d+\s(\d{4}/\d{2}/\d{2}\s\d{2}:\d{2}:\d{2});",
     }
 
     lease_info_dict = {}
@@ -76,5 +76,27 @@ def get_lease_info():
             lease_info_dict[key] = match.group(1)
         else:
             lease_info_dict[key] = None
+            
+    # check if lease_info_dict is empty
+    if not lease_info_dict:
+        return lease_info_dict
+            
+    # 3. Check for lease expiration and rebinding, turn into timestamp
+    now = int(time.time())
+    expire_at = int(time.mktime(time.strptime(lease_info_dict["expire_at"], "%Y/%m/%d %H:%M:%S")))
+    rebind_at = int(time.mktime(time.strptime(lease_info_dict["rebind_at"], "%Y/%m/%d %H:%M:%S")))
+    renew_at = int(time.mktime(time.strptime(lease_info_dict["renew_at"], "%Y/%m/%d %H:%M:%S")))
+    
+    lease_info_dict["expire_at"] = expire_at
+    lease_info_dict["rebind_at"] = rebind_at
+    lease_info_dict["renew_at"] = renew_at
+    lease_info_dict["now"] = now
+    
+    if now > expire_at:
+        lease_info_dict["status"] = "Expired"
+    elif now > rebind_at:
+        lease_info_dict["status"] = "Rebinding"
+    else:
+        lease_info_dict["status"] = "Active"
 
     return lease_info_dict

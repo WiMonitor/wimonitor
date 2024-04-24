@@ -4,3 +4,4 @@ NTP_FILE_PATH = '/etc/ntpsec/ntp.conf' # usually NTP config file is located at /
 NTP_OFFSET_THRESHOLD = 0.1
 DNS_FILE_PATH = '/etc/resolv.conf'
 DNS_TIMEOUT = 3
+DHCP_USAGE_THRESHOLD = 0.8
