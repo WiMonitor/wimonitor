@@ -12,11 +12,6 @@ const DhcpInfo = () => {
   useEffect(() => {
         setLeaseError('');
         setLeaseLoading(true);
-  const [dhcpPool, setDhcpPool] = useState({});
-  const [poolError, setPoolError] = useState('');
-
-  useEffect(() => {
-        setLeaseError('');
         const backendUrl = localStorage.getItem('backendUrl');
         const port = localStorage.getItem('port');
         if (!backendUrl || !port || backendUrl === '' || port === '') {
@@ -56,7 +51,6 @@ const DhcpInfo = () => {
   const fetchDhcpPool = async () => {
     setPoolError('');
     setDhcpPool({});
-
     setPoolLoading(true);
     const backendUrl = localStorage.getItem('backendUrl');
     const port = localStorage.getItem('port');
@@ -69,15 +63,11 @@ const DhcpInfo = () => {
     axios.get(`http://${backendUrl}:${port}/dhcp_pool`)
     .then(response => {
       setDhcpPool(response.data);
-
       setPoolLoading(false);
       console.log(response.data);
     })
     .catch(error => {
       setPoolLoading(false);
-      console.log(response.data);
-    })
-    .catch(error => {
       if (error.response) {
         setPoolError('Error fetching DHCP pool: ' + error.response.data.message);
       }
@@ -92,7 +82,6 @@ const DhcpInfo = () => {
     <div className='page-container'>
       <div className='dhcp-lease'>
         <h2 style={{ fontFamily: "'Roboto Mono', sans-serif", textAlign: 'center'}}> DHCP Lease</h2>       
-        <h2>DHCP Lease</h2>       
         {Object.keys(dhcpLease).length > 0 ? (
           <div className={
             dhcpLease['status'] === 'Active' ? 'card card-success' : dhcpLease['status'] === 'Expired' ? 'card card-error' : 'card card-warning'
@@ -119,14 +108,13 @@ const DhcpInfo = () => {
      
       </div>
       <div className='dhcp-pool'>
-        <h2 style={{ fontFamily: "'Roboto Mono', sans-serif" }}>DHCP Pool</h2>  
+        <h2 style={{ fontFamily: "'Roboto Mono', sans-serif" }}>DHCP Pool</h2>
+        
         <button onClick={fetchDhcpPool}>Scan</button>
+
         {poolLoading ? (
           <div className='loading'>Loading...</div>
         ) : Object.keys(dhcpPool).length > 0 ? (
-        <h2>DHCP Pool</h2>
-        <button onClick={fetchDhcpPool}>Scan</button>
-        {Object.keys(dhcpPool).length > 0 ? (
           <div className=''>
             <div className={
               dhcpPool['usage'] === "Normal" ? 'card card-success' : 'card card-warning'
