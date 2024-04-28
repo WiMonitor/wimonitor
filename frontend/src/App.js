@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
 import { BrowserRouter as Router, Route, Link, Routes } from 'react-router-dom';
-import Dashboard from './Dashboard.jsx';
 import NetworkSpeedChart from './NetworkSpeedChart.jsx'; 
 import DhcpInfo from './DhcpInfo.jsx'; 
 import Nmap from './Nmap.jsx'; 
@@ -22,7 +21,6 @@ function App() {
         <nav>
         <ul className={isNavCollapsed ? "collapsed" : ""}>
             <li><Link to="/">Home</Link></li>
-            <li><Link to="/dashboard">Dashboard</Link></li>
             <li><Link to="/network-speed">Network Speed</Link></li>
             <li><Link to="/dhcp_pool">DHCP Info</Link></li>
             <li><Link to="/nmap">Nmap</Link></li>
@@ -31,7 +29,6 @@ function App() {
           </ul>
         </nav>
         <Routes>
-          <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/network-speed" element={<NetworkSpeedChart />} />
           <Route path="/dhcp_pool" element={<DhcpInfo />} />
           <Route path="/nmap" element={<Nmap />} />
