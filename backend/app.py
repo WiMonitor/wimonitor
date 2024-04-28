@@ -26,51 +26,115 @@ client = MongoClient('mongodb://localhost:27017/')
 db = client.network_db
 scanning = False
 
-def scan_networks(interface='en0'):
-    airport_path = "/System/Library/PrivateFrameworks/Apple80211.framework/Versions/Current/Resources/airport"
-    scan_cmd = f"{airport_path} --scan"
-    result = subprocess.check_output(scan_cmd, shell=True).decode('utf-8')
-    networks = []
-    for line in result.split('\n'):
-        parts = line.split()
-        if len(parts) >= 5:
-            ssid = parts[0]
-            bssid = parts[1]
-            channel = parts[2]
-            rssi = parts[3]
-            crypto = parts[-1]
-            networks.append({'SSID': ssid, 'BSSID': bssid, 'Channel': channel, 'dBm_Signal': rssi, 'Crypto': crypto})
-    return networks
-
-
-def get_dhcp_lease_time(interface='en0'):
-    try:
-        output = subprocess.check_output(['ipconfig', 'getoption', interface, 'lease_time'], stderr=subprocess.STDOUT).decode('utf-8').strip()
-        lease_time = int(output)
-    except Exception as e:
-        lease_time = f"Error: {str(e)}"
-    return lease_time
-
 def ping_network(duration=5, host="google.com"):
-    ping_cmd = f"ping -c {duration} {host}"
-    output = subprocess.check_output(ping_cmd, shell=True).decode('utf-8')
-    match = re.search(r'round-trip min/avg/max/stddev = (.*)/(.*)/(.*)/(.*) ms', output)
-    if match:
-        avg_speed = float(match.group(2))
-        return avg_speed
-    else:
-        return None
+    try:
+        ping_cmd = f"ping -c {duration} {host}"
+        output = subprocess.check_output(ping_cmd, shell=True).decode('utf-8')
+        # print("Ping command output:", output)
+        match = re.search(r'rtt min/avg/max/mdev = (.*)/(.*)/(.*)/(.*) ms', output)
+        if match:
+            avg_speed = float(match.group(2))
+            print(f"Average speed: {avg_speed} ms")
+            return avg_speed
+        else:
+            print("No match found in ping output.") 
+    except subprocess.CalledProcessError as e:
+        print(f"Ping failed: {e.output.decode()}")
+    return None
+
+""" we don't need now
+def scan_networks(interface='wlan0'):
+    scan_cmd = f"iwlist {interface} scan"
+    try:
+        result = subprocess.check_output(scan_cmd, shell=True).decode('utf-8')
+        networks = []
+        ssid = None
+        bssid = None
+        channel = None
+        signal_level = None
+        encryption = None
+        for line in result.split('\n'):
+            line = line.strip()
+            if line.startswith('Cell'): 
+                if ssid: 
+                    networks.append({
+                        'SSID': ssid,
+                        'BSSID': bssid,
+                        'Channel': channel,
+                        'dBm_Signal': signal_level,
+                        'Crypto': encryption
+                    })
+                ssid = None
+                bssid = None
+                channel = None
+                signal_level = None
+                encryption = None
+                parts = line.split()
+                bssid = parts[4]
+            elif 'ESSID:' in line:
+                ssid = line.split('"')[1]
+            elif 'Channel:' in line:
+                channel = line.split(':')[1]
+            elif 'Signal level=' in line:
+                signal_level = line.split('=')[2].split(' ')[0]
+            elif 'Encryption key:' in line:
+                encryption = 'on' if 'on' in line else 'off'
+        if ssid: 
+            networks.append({
+                'SSID': ssid,
+                'BSSID': bssid,
+                'Channel': channel,
+                'dBm_Signal': signal_level,
+                'Crypto': encryption
+            })
+        return networks
+    except subprocess.CalledProcessError as e:
+        print(f"Failed to scan networks: {e.output.decode()}")
+        return []
+"""
+
 
 def scan_and_log():
     global scanning
+    print("Scanning started...")
     while scanning:
-        scan_networks()
+    #   networks = scan_networks()
         avg_speed = ping_network()
-        dhcp_lease_time = get_dhcp_lease_time()
         timestamp = datetime.datetime.now()
+        print(f"Timestamp: {timestamp}, Avg Speed: {avg_speed}")  
         if avg_speed is not None:
-            db.network_speed.insert_one({'speed': avg_speed, 'timestamp': timestamp, 'dhcp_lease_time': dhcp_lease_time})
+            db.network_speed.insert_one({'speed': avg_speed, 'timestamp': timestamp})
+            print("Data inserted into network_speed collection")  
+        # db.networks.insert_many(networks)
+        # print("Network inserted into networks collection")  
         time.sleep(10)
+
+@app.route('/network_speed', methods=['POST'])
+def network_control():
+    global scanning
+    action = request.json.get('action', '')
+
+    if action == 'start':
+        if not scanning:
+            scanning = True
+            Thread(target=scan_and_log).start()
+            return jsonify({'status': 'Scanning started'})
+        else:
+            return jsonify({'status': 'Scanning is already running'}), 400
+
+    elif action == 'stop':
+        scanning = False
+        return jsonify({'status': 'Scanning stopped'})
+
+    elif action == 'fetch':
+        now = datetime.datetime.now()
+        start_time = now - datetime.timedelta(hours=24)
+        speed_data = list(db.network_speed.find({'timestamp': {'$gte': start_time}}, {'_id': 0}))
+        networks_data = list(db.networks.find({}, {'_id': 0}))
+        return jsonify({'network_speed': speed_data, 'networks': networks_data})
+
+    else:
+        return jsonify({'error': 'Invalid action'}), 400
 
 @app.route('/start_scan', methods=['POST'])
 def start_scan():
@@ -85,20 +149,6 @@ def stop_scan():
     global scanning
     scanning = False
     return jsonify({'status': 'Scanning stopped'})
-
-@app.route('/networks', methods=['GET'])
-def get_networks():
-    networks_data = scan_networks()
-    db.networks.insert_many(networks_data)
-    networks_without_id = list(db.networks.find({}, {'_id': 0}))
-    return jsonify(networks_without_id)
-
-@app.route('/network_speed', methods=['GET'])
-def get_network_speed_history():
-    now = datetime.datetime.now()
-    start_time = now - datetime.timedelta(hours=24)
-    speed_data = list(db.network_speed.find({'timestamp': {'$gte': start_time}}, {'_id': 0}))
-    return jsonify(speed_data)
 
 @app.route('/dhcp_pool', methods=['GET'])
 def dhcp_pool():

@@ -18,14 +18,15 @@ const NetworkSpeedChart = () => {
         return;
     }
     const fetchSpeedData = () => {
-      axios.get(`http://${backendUrl}:${port}/network_speed`)
+      axios.post(`http://${backendUrl}:${port}/network_speed`, { action: 'fetch' })
         .then(response => {
-          if (Array.isArray(response.data)) {
+          console.log("Received response:", response); 
+          if (response.data && Array.isArray(response.data.network_speed)) {
             setChartData({
               datasets: [
                 {
                   label: 'Network Speed',
-                  data: response.data.map(item => ({
+                  data: response.data.network_speed.map(item => ({
                     x: new Date(item.timestamp), 
                     y: item.speed,
                   })),
