@@ -48,10 +48,12 @@ const Dashboard = () => {
   return (
     <Container>
       <Row>
-        <Col>
-          <h2>Network Speed History</h2>
-          <Button onClick={startScan}>Start Scan</Button>
-          <Button onClick={stopScan} className="ml-2">Stop Scan</Button>
+        <Col className="text-center">
+          <h2 style={{ fontFamily: "'Roboto Mono', sans-serif", textAlign: 'center'}}>Network Speed History</h2>
+          <div className="d-flex justify-content-center"> 
+            <Button onClick={startScan} className="custom-button-padding">Start Scan</Button>
+            <Button onClick={stopScan} className="custom-button-padding ml-2">Stop Scan</Button>
+          </div>
           <NetworkSpeedChart data={speedData} />
         </Col>
       </Row>

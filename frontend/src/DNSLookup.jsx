@@ -29,7 +29,7 @@ const DNSLookup = () => {
 
     return (
         <div>
-            <h2>DNS Reachability and Resolution</h2>
+            <h2 style={{ fontFamily: "'Roboto Mono', sans-serif" }}>DNS Reachability and Resolution</h2>
             <div>
                 <input type="text" value={hostname} onChange={e => setHostname(e.target.value)} placeholder="Enter hostname" />
                 <input type="text" value={dnsServer} onChange={e => setDnsServer(e.target.value)} placeholder="Enter DNS server" />

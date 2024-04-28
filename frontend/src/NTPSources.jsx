@@ -60,7 +60,7 @@ const NTPSources = () => {
     return (
         <div className='page-container'>
         <div className='ntp-local'>
-            <h2>Local NTP Status</h2>
+            <h2 style={{ fontFamily: "'Roboto Mono', sans-serif", textAlign: 'center'}} >Local NTP Status</h2>
             {error && <p>{error}</p>}
             
             {Object.keys(sources).length > 0 ? (
@@ -89,7 +89,7 @@ const NTPSources = () => {
             ) : <p>Loading Local NTP Sources</p>}
         </div>
         <div className='ntp-custom'>
-            <h2>Other NTP Servers</h2>
+            <h2 style={{ fontFamily: "'Roboto Mono', sans-serif" }}> Other NTP Servers</h2>
             <form>
                 <textarea id='ntp-servers' placeholder='Enter 1 NTP server each line.' value={cNtpServers} onChange={(e) => setCNtpServers(e.target.value)} className='textbox'></textarea>
                 <button onClick={handleSubmit}>Submit</button>
