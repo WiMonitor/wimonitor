@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
 import { BrowserRouter as Router, Route, Link, Routes } from 'react-router-dom';
 import Dashboard from './Dashboard.jsx';
@@ -55,20 +56,47 @@ function Home() {
   }
 
   return (
-    <div>
-      <h1>Welcome to the Network Monitoring App</h1>
-      <p>Select a page from the menu above to get started.</p>
-      <form onSubmit={handleSubmit}>
-        <label htmlFor='Backend URL'>Backend URL:</label>
-        <input id='Backend URL' type="text" name="backendUrl" value={backendUrl} onChange={(e) => setBackendUrl(e.target.value)} />
-        <label htmlFor='Port'>Port:</label>
-        <input id='Port' type="text" name="port" value={port} onChange={(e) => setPort(e.target.value)} />
-        <button type="submit">Save</button>
+    <div className="container mt-4">
+      <h1 className="mb-3" style={{ fontFamily: "'Roboto Mono', sans-serif" }}>Welcome to the Network Monitoring App</h1>
+      <p className="mb-4">Select a page from the menu above to get started.</p>
+      <form onSubmit={handleSubmit} className="mb-3">
+        <div className="row g-3 align-items-center justify-content-center">
+          <div className="col-auto">
+            <label htmlFor='backendUrl' className="col-form-label">Backend URL:</label>
+          </div>
+          <div className="col-auto">
+            <input 
+              id='backendUrl' 
+              type="text" 
+              className="form-control" 
+              name="backendUrl" 
+              value={backendUrl} 
+              onChange={(e) => setBackendUrl(e.target.value)} 
+            />
+          </div>
+          <div className="col-auto">
+            <label htmlFor='port' className="col-form-label">Port:</label>
+          </div>
+          <div className="col-auto">
+            <input 
+              id='port' 
+              type="text" 
+              className="form-control" 
+              name="port" 
+              value={port} 
+              onChange={(e) => setPort(e.target.value)} 
+            />
+          </div>
+          <div className="col-auto">
+            <button type="submit" className="btn btn-success">Save</button>
+          </div>
+        </div>
       </form>
-      <br />
-      <p>Current Setting:</p>
-      <label>Backend URL: {localStorage.getItem('backendUrl') === null ? "Not Set": localStorage.getItem('backendUrl')}; </label>
-      <label>Port: {localStorage.getItem('port') === null ? "Not Set": localStorage.getItem('port')}</label>
+      <div>
+        <p>Current Setting:</p>
+        <p>Backend URL: {localStorage.getItem('backendUrl') || "Not Set"}; </p>
+        <p>Port: {localStorage.getItem('port') || "Not Set"}</p>
+      </div>
     </div>
   );
 }

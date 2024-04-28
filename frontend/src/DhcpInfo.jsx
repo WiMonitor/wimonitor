@@ -4,6 +4,14 @@ import axios from 'axios';
 const DhcpInfo = () => {
   const [dhcpLease, setDhcpLease] = useState({});
   const [leaseError, setLeaseError] = useState('');
+  const [leaseLoading, setLeaseLoading] = useState(false);
+  const [dhcpPool, setDhcpPool] = useState({});
+  const [poolError, setPoolError] = useState('');
+  const [poolLoading, setPoolLoading] = useState(false);
+
+  useEffect(() => {
+        setLeaseError('');
+        setLeaseLoading(true);
   const [dhcpPool, setDhcpPool] = useState({});
   const [poolError, setPoolError] = useState('');
 
@@ -13,18 +21,21 @@ const DhcpInfo = () => {
         const port = localStorage.getItem('port');
         if (!backendUrl || !port || backendUrl === '' || port === '') {
             setLeaseError('Please set backend URL and port in the settings.');
+            setLeaseLoading(false);
             return;
         }
 
         axios.get(`http://${backendUrl}:${port}/dhcp_lease`)
           .then(response => {
             setDhcpLease(response.data);
+            setLeaseLoading(false);
             console.log(response.data);
             if (Object.keys(response.data).length === 0) {
               setLeaseError('No DHCP lease found.');
             }
           })
           .catch(error => {
+            setLeaseLoading(false);
             if (error.response) {
               setLeaseError('Error fetching DHCP lease: ' + error.response.data.message);
             }
@@ -45,16 +56,25 @@ const DhcpInfo = () => {
   const fetchDhcpPool = async () => {
     setPoolError('');
     setDhcpPool({});
+
+    setPoolLoading(true);
     const backendUrl = localStorage.getItem('backendUrl');
     const port = localStorage.getItem('port');
     if (!backendUrl || !port || backendUrl === '' || port === '') {
         setPoolError('Please set backend URL and port in the settings.');
+        setPoolLoading(false);
         return;
     }
 
     axios.get(`http://${backendUrl}:${port}/dhcp_pool`)
     .then(response => {
       setDhcpPool(response.data);
+
+      setPoolLoading(false);
+      console.log(response.data);
+    })
+    .catch(error => {
+      setPoolLoading(false);
       console.log(response.data);
     })
     .catch(error => {
@@ -71,6 +91,7 @@ const DhcpInfo = () => {
   return (
     <div className='page-container'>
       <div className='dhcp-lease'>
+        <h2 style={{ fontFamily: "'Roboto Mono', sans-serif", textAlign: 'center'}}> DHCP Lease</h2>       
         <h2>DHCP Lease</h2>       
         {Object.keys(dhcpLease).length > 0 ? (
           <div className={
@@ -98,8 +119,12 @@ const DhcpInfo = () => {
      
       </div>
       <div className='dhcp-pool'>
+        <h2 style={{ fontFamily: "'Roboto Mono', sans-serif" }}>DHCP Pool</h2>  
+        <button onClick={fetchDhcpPool}>Scan</button>
+        {poolLoading ? (
+          <div className='loading'>Loading...</div>
+        ) : Object.keys(dhcpPool).length > 0 ? (
         <h2>DHCP Pool</h2>
-        
         <button onClick={fetchDhcpPool}>Scan</button>
         {Object.keys(dhcpPool).length > 0 ? (
           <div className=''>
