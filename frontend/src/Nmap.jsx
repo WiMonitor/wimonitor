@@ -15,6 +15,7 @@ const Nmap = () => {
           setError('Please set backend URL and port in the settings.');
           return;
       }
+      console.log('http://${backendUrl}:${port}/nmap');
       const response = await axios.get(`http://${backendUrl}:${port}/nmap`);
       setScanResult(response.data.result);
     } catch (error) {
@@ -36,3 +37,4 @@ const Nmap = () => {
 };
 
 export default Nmap;
+
