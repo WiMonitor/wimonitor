@@ -29,11 +29,9 @@ def ping_network(duration=5, host="google.com"):
     try:
         ping_cmd = f"ping -c {duration} {host}"
         output = subprocess.check_output(ping_cmd, shell=True).decode('utf-8')
-        # print("Ping command output:", output)
         match = re.search(r'rtt min/avg/max/mdev = (.*)/(.*)/(.*)/(.*) ms', output)
         if match:
             avg_speed = float(match.group(2))
-            # print(f"Average speed: {avg_speed} ms")
             return avg_speed
         else:
             print("No match found in ping output.") 
@@ -100,7 +98,6 @@ def scan_and_log():
     #   networks = scan_networks()
         avg_speed = ping_network()
         timestamp = datetime.datetime.now()
-        print(f"Timestamp: {timestamp}, Avg Speed: {avg_speed}")  
         if avg_speed is not None:
             db.network_speed.insert_one({'speed': avg_speed, 'timestamp': timestamp})  
         time.sleep(10)
