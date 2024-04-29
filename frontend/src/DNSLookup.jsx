@@ -3,27 +3,26 @@ import axios from 'axios';
 
 const DNSLookup = () => {
     const [hostname, setHostname] = useState('google.com');
-    const [dnsServer, setDnsServer] = useState('8.8.8.8');
     const [dnsInfo, setDnsInfo] = useState(null);
     const [error, setError] = useState('');
 
     const fetchDNSInfo = async () => {
+        const backendUrl = localStorage.getItem('backendUrl') || 'localhost';
+        const port = localStorage.getItem('port') || '3000';
+        
+        console.log(`Fetching DNS info from http://${backendUrl}:${port}/dns_check`);
+        
         try {
-            const backendUrl = localStorage.getItem('backendUrl');
-            const port = localStorage.getItem('port');
-            if (!backendUrl || !port || backendUrl === '' || port === '') {
-                setError('Please set backend URL and port in the settings.');
-                return;
-            }
             const response = await axios.get(`http://${backendUrl}:${port}/dns_check`, {
-                params: {
-                    hostname: hostname,
-                    dns_server: dnsServer
-                }
+                params: { test_domain: hostname }
             });
+            console.log('API response:', response.data);
             setDnsInfo(response.data);
+            setError('');
         } catch (error) {
+            console.error('Failed to fetch DNS information:', error);
             setError('Failed to fetch DNS information: ' + error.message);
+            setDnsInfo(null);
         }
     };
 
@@ -31,19 +30,27 @@ const DNSLookup = () => {
         <div>
             <h2 style={{ fontFamily: "'Roboto Mono', sans-serif" }}>DNS Reachability and Resolution</h2>
             <div>
-                <input type="text" value={hostname} onChange={e => setHostname(e.target.value)} placeholder="Enter hostname" />
-                <input type="text" value={dnsServer} onChange={e => setDnsServer(e.target.value)} placeholder="Enter DNS server" />
+                <input
+                    type="text"
+                    value={hostname}
+                    onChange={e => setHostname(e.target.value)}
+                    placeholder="Enter hostname"
+                />
                 <button onClick={fetchDNSInfo}>Check DNS</button>
             </div>
             {error ? <p>{error}</p> : dnsInfo && (
                 <div>
-                    <p><strong>DNS Server:</strong> {dnsInfo.dns_server}</p>
-                    <p><strong>DNS Reachable:</strong> {dnsInfo.dns_reachable ? 'Yes' : 'No'}</p>
-                    <p><strong>Hostname:</strong> {dnsInfo.hostname}</p>
-                    <p><strong>Resolution Successful:</strong> {dnsInfo.resolution_success ? 'Yes' : 'No'}</p>
-                    {dnsInfo.resolution_success && <p><strong>Resolved IP:</strong> {dnsInfo.resolved_ip}</p>}
-                    {dnsInfo.dns_error && <p><strong>DNS Error:</strong> {dnsInfo.dns_error}</p>}
-                    {dnsInfo.resolution_error && <p><strong>Resolution Error:</strong> {dnsInfo.resolution_error}</p>}
+                    {Object.keys(dnsInfo).map((dnsServer, index) => (
+                        <div key={index}>
+                            <h3>DNS Server: {dnsServer}</h3>
+                            <p><strong>Hostname:</strong> {dnsInfo[dnsServer].target_domain || hostname}</p>
+                            <p><strong>DNS Reachable:</strong> {dnsInfo[dnsServer].dns_reachable ? 'Yes' : 'No'}</p>
+                            <p><strong>Resolution Successful:</strong> {dnsInfo[dnsServer].resolution_success ? 'Yes' : 'No'}</p>
+                            {dnsInfo[dnsServer].resolution_success && (
+                                <p><strong>Resolved IPs:</strong> {dnsInfo[dnsServer].resolved_ips.join(', ')}</p>
+                            )}
+                        </div>
+                    ))}
                 </div>
             )}
         </div>
