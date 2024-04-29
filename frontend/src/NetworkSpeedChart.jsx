@@ -118,7 +118,7 @@ const NetworkSpeedChart = () => {
 
   return (
     <div>
-      <h2 style={{ fontFamily: "'Roboto Mono', sans-serif", textAlign: 'center'}}>Network Speed History</h2>
+      <h2 style={{ fontFamily: "'Roboto Mono', sans-serif", textAlign: 'center'}}>Ping</h2>
       <div className="d-flex justify-content-center">
         <Button onClick={startScan} disabled={isScanning} className="mr-2">Start Scan</Button>
         <Button onClick={stopScan} disabled={!isScanning}>Stop Scan</Button>

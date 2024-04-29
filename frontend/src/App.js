@@ -21,8 +21,8 @@ function App() {
         <nav>
         <ul className={isNavCollapsed ? "collapsed" : ""}>
             <li><Link to="/">Home</Link></li>
-            <li><Link to="/network-speed">Network Speed</Link></li>
-            <li><Link to="/dhcp_pool">DHCP Info</Link></li>
+            <li><Link to="/network-speed">Ping</Link></li>
+            <li><Link to="/dhcp_pool">DHCP</Link></li>
             <li><Link to="/nmap">Nmap</Link></li>
             <li><Link to="/ntp-sources">NTP Sources</Link></li> 
             <li><Link to="/dns-lookup">DNS Lookup</Link></li> 
