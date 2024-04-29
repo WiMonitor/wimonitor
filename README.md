@@ -7,11 +7,21 @@
 * **[Georgia Li](https://github.com/nori210)**  
 
 # Usage
-1. Set endpoint on at the home page
-2. Network Speed Test
-3. DHCP Lease and DHCP pool scan
-4. NTP Source
-5. DNS lookup
+* Users should set the tested endpoint at the home page before they go to other tabs.
+* Network Ping Test
+  * We take average rtt as our data.
+  * Users can directly save the image to local.
+  ![ping result](images/ping.png "sample result")
+  * "Clear All Data" button will clear up the database.
+
+* DHCP lease and DHCP pool scan
+  * We use nmap to scan the ip.
+  * Users can set threshold of dhcp usage in `backend/config.py`.
+* NTP Source
+  * We test connection to NTP servers.
+  ![ntp result](images/ntp.png "sample ntp result")
+* DNS lookup
+  * Users can input hostname or ip address.
 
 # Get Started
 To install all the dependency in the backend, run
@@ -39,3 +49,18 @@ To start database, run
 
 Change your system setting in `backend/config.py`
 
+
+_The path of DHCP Lease may vary from systems to system._
+
+
+# Future Features
+
+_We left several potential features to be implemented._
+
+For exisiting features:
+* Build changelog for exisiting functionalities, such as NTP analysis.
+* Build visualization for exisiting functionalities, such as NTP analysis.
+
+For features we have planned but didn't develop:
+*  Deep packet inspection (Intrusion Protection System)
+*  MTU path discovery
