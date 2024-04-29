@@ -1,7 +1,7 @@
 # this file is named dns2 because python will be confused when import dns.resolver, it will consider it as a loop import.
 import dns.resolver, config, socket
 
-def __get_local_dns_servers__():
+def get_local_dns_servers():
     """Helper function to read the local DNS servers from the /etc/resolv.conf file.
 
     Returns:
@@ -61,4 +61,4 @@ def test_local_dns_servers(test_domain):
     Returns:
         (dict): See test_dns_connectivity() for details
     """
-    return test_dns_connectivity(__get_local_dns_servers__(), test_domain)
+    return test_dns_connectivity(get_local_dns_servers(), test_domain)
