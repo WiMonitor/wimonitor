@@ -7,7 +7,11 @@
 * **[Georgia Li](https://github.com/nori210)**  
 
 # Usage
-
+1. Set endpoint on at the home page
+2. Network Speed Test
+3. DHCP Lease and DHCP pool scan
+4. NTP Source
+5. DNS lookup
 
 # Get Started
 To install all the dependency in the backend, run
