@@ -12,7 +12,7 @@ from bson.json_util import dumps
 
 import config
 from dhcp import scan_dhcp_pool, get_lease_info
-from dns2 import test_local_dns_servers
+from dns2 import test_local_dns_servers, get_local_dns_servers, test_dns_connectivity
 from ntp import test_local_ntp_servers, test_ntp_servers
 
 from flask import Flask, jsonify, request
@@ -24,6 +24,11 @@ CORS(app)
 client = MongoClient('mongodb://localhost:27017/')
 db = client.network_db
 scanning = False
+
+@app.route('/local_dns_config', methods=['GET'])
+def local_dns_servers():
+    return jsonify(get_local_dns_servers())
+    
 
 def ping_network(duration=5, host="google.com"):
     try:
@@ -38,57 +43,6 @@ def ping_network(duration=5, host="google.com"):
     except subprocess.CalledProcessError as e:
         print(f"Ping failed: {e.output.decode()}")
     return None
-
-""" we don't need now
-def scan_networks(interface='wlan0'):
-    scan_cmd = f"iwlist {interface} scan"
-    try:
-        result = subprocess.check_output(scan_cmd, shell=True).decode('utf-8')
-        networks = []
-        ssid = None
-        bssid = None
-        channel = None
-        signal_level = None
-        encryption = None
-        for line in result.split('\n'):
-            line = line.strip()
-            if line.startswith('Cell'): 
-                if ssid: 
-                    networks.append({
-                        'SSID': ssid,
-                        'BSSID': bssid,
-                        'Channel': channel,
-                        'dBm_Signal': signal_level,
-                        'Crypto': encryption
-                    })
-                ssid = None
-                bssid = None
-                channel = None
-                signal_level = None
-                encryption = None
-                parts = line.split()
-                bssid = parts[4]
-            elif 'ESSID:' in line:
-                ssid = line.split('"')[1]
-            elif 'Channel:' in line:
-                channel = line.split(':')[1]
-            elif 'Signal level=' in line:
-                signal_level = line.split('=')[2].split(' ')[0]
-            elif 'Encryption key:' in line:
-                encryption = 'on' if 'on' in line else 'off'
-        if ssid: 
-            networks.append({
-                'SSID': ssid,
-                'BSSID': bssid,
-                'Channel': channel,
-                'dBm_Signal': signal_level,
-                'Crypto': encryption
-            })
-        return networks
-    except subprocess.CalledProcessError as e:
-        print(f"Failed to scan networks: {e.output.decode()}")
-        return []
-"""
 
 
 def scan_and_log():
@@ -171,10 +125,11 @@ def dhcp_lease():
         return jsonify({'message': str(e)}), 500
 
 
-@app.route('/dns_check', methods=['GET'])
+@app.route('/dns_check', methods=['POST'])
 def dns_check():
-    test_domain = request.args.get('test_domain', 'google.com')
-    dns_results = test_local_dns_servers(test_domain)
+    test_domain = request.json.get('test_domain')
+    dns_servers = request.json.get('dns_servers')
+    dns_results = test_dns_connectivity(dns_servers, test_domain)
     return jsonify(dns_results)
 
 @app.route('/ntp_sources', methods=['GET'])
