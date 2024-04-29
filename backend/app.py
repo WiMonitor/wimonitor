@@ -24,13 +24,15 @@ CORS(app)
 client = MongoClient('mongodb://localhost:27017/')
 db = client.network_db
 scanning = False
+last_scan_addr = None
+last_scan_interval = None
 
 @app.route('/local_dns_config', methods=['GET'])
 def local_dns_servers():
     return jsonify(get_local_dns_servers())
     
 
-def ping_network(duration=5, host="google.com"):
+def ping_network(duration, host):
     try:
         ping_cmd = f"ping -c {duration} {host}"
         output = subprocess.check_output(ping_cmd, shell=True).decode('utf-8')
@@ -45,56 +47,38 @@ def ping_network(duration=5, host="google.com"):
     return None
 
 
-def scan_and_log():
+def scan_and_log(ping_addr="google.com", ping_interval=5):
     global scanning
-    print("Scanning started...")
     while scanning:
-    #   networks = scan_networks()
-        avg_speed = ping_network()
+        
+        avg_speed = ping_network(ping_interval, ping_addr)
         timestamp = datetime.datetime.now()
         if avg_speed is not None:
             db.network_speed.insert_one({'speed': avg_speed, 'timestamp': timestamp})  
-        time.sleep(10)
-
+            
 @app.route('/network_speed', methods=['POST'])
 def network_control():
     global scanning
-    action = request.json.get('action', '')
-    print(f"Received action: {action}") 
 
-    if action == 'start':
-        if not scanning:
-            scanning = True
-            print("Scanning started") 
-            Thread(target=scan_and_log).start()
-            return jsonify({'status': 'Scanning started'})
-        else:
-            return jsonify({'status': 'Scanning is already running'}), 400
-
-    elif action == 'stop':
-        scanning = False
-        print("Scanning stopped")
-        return jsonify({'status': 'Scanning stopped'})
-
-    elif action == 'fetch':
-        now = datetime.datetime.now()
-        start_time = now - datetime.timedelta(hours=24)
-        speed_data = list(db.network_speed.find({'timestamp': {'$gte': start_time}}, {'_id': 0}))
-        for data in speed_data:
-            if 'timestamp' in data:
-                data['timestamp'] = data['timestamp'].isoformat()
-        # print(f"Fetched data: {speed_data}") 
-        return jsonify({'network_speed': speed_data})
-
-    else:
-        return jsonify({'error': 'Invalid action'}), 400
+    now = datetime.datetime.now()
+    start_time = now - datetime.timedelta(hours=24)
+    speed_data = list(db.network_speed.find({'timestamp': {'$gte': start_time}}, {'_id': 0}))
+    for data in speed_data:
+        if 'timestamp' in data:
+            data['timestamp'] = data['timestamp'].isoformat()
+    return jsonify({'network_speed': speed_data})
 
 @app.route('/start_scan', methods=['POST'])
 def start_scan():
-    global scanning
+    global scanning, last_scan_addr, last_scan_interval
+    ping_address = request.json.get('ping_addr') 
+    ping_interval = request.json.get('ping_interval')
+    last_scan_addr = ping_address
+    last_scan_interval = ping_interval
+
     if not scanning:
         scanning = True
-        Thread(target=scan_and_log).start()
+        Thread(target=scan_and_log, args=(ping_address,ping_interval)).start()
     return jsonify({'status': 'Scanning started'})
 
 @app.route('/stop_scan', methods=['POST'])
@@ -142,6 +126,15 @@ def customize_ntp_test():
     servers = request.json.get('ntp_servers', [])
     ntp_results = test_ntp_servers(servers)
     return jsonify(ntp_results)
+
+
+@app.route('/ping_status', methods=['GET'])
+def ping_status():
+    status_dict = {}
+    status_dict['scanning'] = scanning
+    status_dict['ping_addr'] = last_scan_addr
+    status_dict['ping_interval'] = last_scan_interval
+    return jsonify(status_dict)
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0')

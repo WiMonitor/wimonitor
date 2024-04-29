@@ -3,7 +3,7 @@ import axios from 'axios';
 import { Chart, registerables } from 'chart.js';
 import { Line } from 'react-chartjs-2';
 import 'chartjs-adapter-date-fns';
-import { Button } from 'react-bootstrap';
+import { Button, Form } from 'react-bootstrap';
 
 Chart.register(...registerables);
 
@@ -11,9 +11,34 @@ const NetworkSpeedChart = () => {
   const [chartData, setChartData] = useState({ datasets: [] });
   const [error, setError] = useState('');
   const [isScanning, setIsScanning] = useState(false);
+  const [pingAddr, setPingAddr] = useState('');
+  const [pingInterval, setPingInterval] = useState(5); // 10 seconds
 
   const backendUrl = localStorage.getItem('backendUrl');
   const port = localStorage.getItem('port');
+
+
+  useEffect(() => {
+    if (!backendUrl || !port || backendUrl === '' || port === '') {
+        setError('Please set backend URL and port in the settings.');
+        return;
+    }
+    axios.get(`http://${backendUrl}:${port}/ping_status`)
+      .then(response => {
+        console.log(response.data);
+        setIsScanning(response.data.scanning);
+        if (response.data.scanning) {
+          setPingAddr(response.data.ping_addr);
+          setPingInterval(response.data.ping_interval);
+        }
+      })
+      .catch(error => {
+        console.error('Error fetching scan status:', error);
+        setError(error.message);
+      });
+  }, []);
+
+
 
   useEffect(() => {
     if (!backendUrl || !port || backendUrl === '' || port === '') {
@@ -21,7 +46,7 @@ const NetworkSpeedChart = () => {
         return;
     }
     const fetchSpeedData = () => {
-      axios.post(`http://${backendUrl}:${port}/network_speed`, { action: 'fetch' })
+      axios.post(`http://${backendUrl}:${port}/network_speed`)
         .then(response => {
           if (response.data && Array.isArray(response.data.network_speed)) {
             setChartData({
@@ -49,7 +74,7 @@ const NetworkSpeedChart = () => {
     let intervalId;
     if (isScanning) {
       fetchSpeedData();
-      intervalId = setInterval(fetchSpeedData, 10000); // Update every 10 seconds
+      intervalId = setInterval(fetchSpeedData, pingInterval*1000);
     }
     return () => clearInterval(intervalId);
   }, [isScanning]);
@@ -72,7 +97,7 @@ const NetworkSpeedChart = () => {
     setIsScanning(true);
     const backendUrl = localStorage.getItem('backendUrl');
     const port = localStorage.getItem('port');
-    axios.post(`http://${backendUrl}:${port}/start_scan`)
+    axios.post(`http://${backendUrl}:${port}/start_scan`, { 'ping_addr':pingAddr, 'ping_interval':pingInterval })
       .catch(err => {
         setError(err.message);
         setIsScanning(false); 
@@ -105,7 +130,7 @@ const NetworkSpeedChart = () => {
       y: {
         title: {
           display: true,
-          text: 'Network Speed (ms)'
+          text: 'Latency (ms)'
         }
       }
     },
@@ -119,10 +144,17 @@ const NetworkSpeedChart = () => {
   return (
     <div>
       <h2 style={{ fontFamily: "'Roboto Mono', sans-serif", textAlign: 'center'}}>Ping</h2>
+      <div style={{display:'flex'}}>
+        {/* add a input for the ping addr */}
+        <Form.Label>Address</Form.Label>
+        <Form.Control type="text" placeholder="Enter the address to ping, google.com if empty" value={pingAddr} onChange={e => setPingAddr(e.target.value)} />
+        <Form.Label>Interval (seconds)</Form.Label>
+        <Form.Control type="number" placeholder="" value={pingInterval} onChange={e => setPingInterval(e.target.value)} />
+      </div>
       <div className="d-flex justify-content-center">
-        <Button onClick={startScan} disabled={isScanning} className="mr-2">Start Scan</Button>
-        <Button onClick={stopScan} disabled={!isScanning}>Stop Scan</Button>
-        <Button onClick={clearData} disabled={isScanning} className="mr-2">Clear All Data</Button>
+        <Button onClick={startScan} disabled={isScanning} className="mr-2 btn-success">Start Monitor</Button>
+        <Button onClick={stopScan} disabled={!isScanning}>Stop Monitor</Button>
+        <Button onClick={clearData} disabled={isScanning} className="mr-2 btn-danger">Clear All Data</Button>
       </div>
       <Line data={chartData} options={options} />
       {error && <p className="text-danger">{error}</p>}
