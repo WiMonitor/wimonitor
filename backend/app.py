@@ -35,7 +35,7 @@ def ping_network(duration=5, host="google.com"):
         match = re.search(r'rtt min/avg/max/mdev = (.*)/(.*)/(.*)/(.*) ms', output)
         if match:
             avg_speed = float(match.group(2))
-            print(f"Average speed: {avg_speed} ms")
+            # print(f"Average speed: {avg_speed} ms")
             return avg_speed
         else:
             print("No match found in ping output.") 
@@ -105,9 +105,7 @@ def scan_and_log():
         print(f"Timestamp: {timestamp}, Avg Speed: {avg_speed}")  
         if avg_speed is not None:
             db.network_speed.insert_one({'speed': avg_speed, 'timestamp': timestamp})
-            print("Data inserted into network_speed collection")  
-        # db.networks.insert_many(networks)
-        # print("Network inserted into networks collection")  
+            print("Data inserted into network_speed collection")    
         time.sleep(10)
 
 @app.route('/network_speed', methods=['POST'])
@@ -137,7 +135,7 @@ def network_control():
         for data in speed_data:
             if 'timestamp' in data:
                 data['timestamp'] = data['timestamp'].isoformat()
-        print(f"Fetched data: {speed_data}") 
+        # print(f"Fetched data: {speed_data}") 
         return jsonify({'network_speed': speed_data})
 
     else:

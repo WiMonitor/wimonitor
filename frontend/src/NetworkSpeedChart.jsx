@@ -4,13 +4,13 @@ import { Chart, registerables } from 'chart.js';
 import { Line } from 'react-chartjs-2';
 import 'chartjs-adapter-date-fns';
 import { Button } from 'react-bootstrap';
-import { formatISO } from 'date-fns'; 
 
 Chart.register(...registerables);
 
 const NetworkSpeedChart = () => {
   const [chartData, setChartData] = useState({ datasets: [] });
   const [error, setError] = useState('');
+  const [isScanning, setIsScanning] = useState(false);
 
   useEffect(() => {
     const backendUrl = localStorage.getItem('backendUrl');
@@ -23,7 +23,6 @@ const NetworkSpeedChart = () => {
       axios.post(`http://${backendUrl}:${port}/network_speed`, { action: 'fetch' })
         .then(response => {
           if (response.data && Array.isArray(response.data.network_speed)) {
-            
             setChartData({
               datasets: [
                 {
@@ -42,32 +41,37 @@ const NetworkSpeedChart = () => {
         })
         .catch(error => {
           console.error('Error fetching data:', error);
+          setError(error.message);
         });
     };
 
-    fetchSpeedData();
-    const intervalId = setInterval(fetchSpeedData, 10000); // Update every 10 seconds
+    let intervalId;
+    if (isScanning) {
+      fetchSpeedData();
+      intervalId = setInterval(fetchSpeedData, 10000); // Update every 10 seconds
+    }
     return () => clearInterval(intervalId);
-  }, []);
+  }, [isScanning]);
 
   const startScan = () => {
+    setIsScanning(true);
     const backendUrl = localStorage.getItem('backendUrl');
     const port = localStorage.getItem('port');
-    if (!backendUrl || !port || backendUrl === '' || port === '') {
-        setError('Please set backend URL and port in the settings.');
-        return;
-    }
-    axios.post(`http://${backendUrl}:${port}/start_scan`).catch(err => setError(err.message));
+    axios.post(`http://${backendUrl}:${port}/start_scan`)
+      .catch(err => {
+        setError(err.message);
+        setIsScanning(false); // Set this to false if there is an error starting the scan
+      });
   };
 
   const stopScan = () => {
     const backendUrl = localStorage.getItem('backendUrl');
     const port = localStorage.getItem('port');
-    if (!backendUrl || !port || backendUrl === '' || port === '') {
-        setError('Please set backend URL and port in the settings.');
-        return;
-    }
-    axios.post(`http://${backendUrl}:${port}/stop_scan`).catch(err => setError(err.message));
+    axios.post(`http://${backendUrl}:${port}/stop_scan`)
+      .then(() => setIsScanning(false))
+      .catch(err => {
+        setError(err.message);
+      });
   };
 
   const options = {
@@ -101,8 +105,8 @@ const NetworkSpeedChart = () => {
     <div>
       <h2 style={{ fontFamily: "'Roboto Mono', sans-serif", textAlign: 'center'}}>Network Speed History</h2>
       <div className="d-flex justify-content-center">
-        <Button onClick={startScan} className="mr-2">Start Scan</Button>
-        <Button onClick={stopScan}>Stop Scan</Button>
+        <Button onClick={startScan} disabled={isScanning} className="mr-2">Start Scan</Button>
+        <Button onClick={stopScan} disabled={!isScanning}>Stop Scan</Button>
       </div>
       <Line data={chartData} options={options} />
       {error && <p className="text-danger">{error}</p>}
