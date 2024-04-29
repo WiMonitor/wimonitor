@@ -8,6 +8,7 @@ from threading import Thread
 import time
 import shlex
 import socket
+from bson.json_util import dumps
 
 import config
 from dhcp import scan_dhcp_pool, get_lease_info
@@ -113,10 +114,12 @@ def scan_and_log():
 def network_control():
     global scanning
     action = request.json.get('action', '')
+    print(f"Received action: {action}") 
 
     if action == 'start':
         if not scanning:
             scanning = True
+            print("Scanning started") 
             Thread(target=scan_and_log).start()
             return jsonify({'status': 'Scanning started'})
         else:
@@ -124,14 +127,18 @@ def network_control():
 
     elif action == 'stop':
         scanning = False
+        print("Scanning stopped")
         return jsonify({'status': 'Scanning stopped'})
 
     elif action == 'fetch':
         now = datetime.datetime.now()
         start_time = now - datetime.timedelta(hours=24)
         speed_data = list(db.network_speed.find({'timestamp': {'$gte': start_time}}, {'_id': 0}))
-        networks_data = list(db.networks.find({}, {'_id': 0}))
-        return jsonify({'network_speed': speed_data, 'networks': networks_data})
+        for data in speed_data:
+            if 'timestamp' in data:
+                data['timestamp'] = data['timestamp'].isoformat()
+        print(f"Fetched data: {speed_data}") 
+        return jsonify({'network_speed': speed_data})
 
     else:
         return jsonify({'error': 'Invalid action'}), 400

@@ -4,6 +4,8 @@ import { Chart, registerables } from 'chart.js';
 import { Line } from 'react-chartjs-2';
 import 'chartjs-adapter-date-fns';
 import { Button } from 'react-bootstrap';
+import { formatISO } from 'date-fns'; 
+
 Chart.register(...registerables);
 
 const NetworkSpeedChart = () => {
@@ -20,8 +22,8 @@ const NetworkSpeedChart = () => {
     const fetchSpeedData = () => {
       axios.post(`http://${backendUrl}:${port}/network_speed`, { action: 'fetch' })
         .then(response => {
-          console.log("Received response:", response); 
           if (response.data && Array.isArray(response.data.network_speed)) {
+            
             setChartData({
               datasets: [
                 {
@@ -74,7 +76,7 @@ const NetworkSpeedChart = () => {
         type: 'time',
         time: {
           unit: 'hour',
-          tooltipFormat: 'MMM d, h:mm a'
+          tooltipFormat: 'MMM d, h:mm a',
         },
         title: {
           display: true,
