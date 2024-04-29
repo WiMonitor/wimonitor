@@ -91,8 +91,8 @@ const NTPSources = () => {
         <div className='ntp-custom'>
             <h2 style={{ fontFamily: "'Roboto Mono', sans-serif" }}> Other NTP Servers</h2>
             <form>
-                <textarea id='ntp-servers' placeholder='Enter 1 NTP server each line.' value={cNtpServers} onChange={(e) => setCNtpServers(e.target.value)} className='textbox'></textarea>
-                <button onClick={handleSubmit}>Submit</button>
+                <textarea id='ntp-servers' placeholder='Enter 1 NTP server each line.' value={cNtpServers} onChange={(e) => setCNtpServers(e.target.value)} className='form-control'></textarea>
+                <button onClick={handleSubmit} className='btn btn-success'>Submit</button>
             </form>
             <br />
             {customTestError && <p>{customTestError}</p>}

@@ -75,12 +75,12 @@ const DNSLookup = () => {
                     placeholder="Enter hostname"
                     className="form-control" 
                 />
-                <button onClick={fetchDNSInfo}>Check</button>
+                <button onClick={fetchDNSInfo} className='btn btn-success'>Check</button>
             </div>
             {error && <p>{error}</p>}
             {dnsInfo.map((record, index) => (
                 <div key={index} style={{ border: '1px solid #ccc', borderRadius: '5px', padding: '10px', margin: '10px 0' }}>
-                    <button style={{ float: 'right' }} onClick={() => deleteRecord(index)}>Delete</button>
+                    <button style={{ float: 'right' }} className='btn btn-danger' onClick={() => deleteRecord(index)}>Delete</button>
                     <h2>{record.hostname}</h2>
                     {Object.keys(record.info).map((dnsServer, dnsIndex) => (
                         <div key={dnsIndex}>

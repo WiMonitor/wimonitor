@@ -81,7 +81,7 @@ const DhcpInfo = () => {
   return (
     <div className='page-container'>
       <div className='dhcp-lease'>
-        <h2 style={{ fontFamily: "'Roboto Mono', sans-serif", textAlign: 'center'}}> DHCP Lease</h2>       
+        <h2 style={{ fontFamily: "'Roboto Mono', sans-serif"}}> DHCP Lease</h2>       
         {Object.keys(dhcpLease).length > 0 ? (
           <div className={
             dhcpLease['status'] === 'Active' ? 'card card-success' : dhcpLease['status'] === 'Expired' ? 'card card-error' : 'card card-warning'
@@ -110,10 +110,10 @@ const DhcpInfo = () => {
       <div className='dhcp-pool'>
         <h2 style={{ fontFamily: "'Roboto Mono', sans-serif" }}>DHCP Pool</h2>
         
-        <button onClick={fetchDhcpPool}>Scan</button>
+        <button onClick={fetchDhcpPool} className='btn btn-success'>Scan</button>
 
         {poolLoading ? (
-          <div className='loading'>Loading...</div>
+          <div className='loading'>Scanning...</div>
         ) : Object.keys(dhcpPool).length > 0 ? (
           <div className=''>
             <div className={
