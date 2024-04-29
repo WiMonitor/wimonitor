@@ -17,11 +17,9 @@ from ntp import test_local_ntp_servers, test_ntp_servers
 
 from flask import Flask, jsonify, request
 from flask_cors import CORS
-# from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 
 app = Flask(__name__)
-# app.config['JWT_SECRET_KEY'] = 'wimonitor'
-# jwt = JWTManager(app)
+
 CORS(app)
 client = MongoClient('mongodb://localhost:27017/')
 db = client.network_db
@@ -104,8 +102,7 @@ def scan_and_log():
         timestamp = datetime.datetime.now()
         print(f"Timestamp: {timestamp}, Avg Speed: {avg_speed}")  
         if avg_speed is not None:
-            db.network_speed.insert_one({'speed': avg_speed, 'timestamp': timestamp})
-            print("Data inserted into network_speed collection")    
+            db.network_speed.insert_one({'speed': avg_speed, 'timestamp': timestamp})  
         time.sleep(10)
 
 @app.route('/network_speed', methods=['POST'])
@@ -154,6 +151,11 @@ def stop_scan():
     global scanning
     scanning = False
     return jsonify({'status': 'Scanning stopped'})
+
+@app.route('/clear_data', methods=['POST'])
+def clear_data():
+    db.network_speed.delete_many({})
+    return jsonify({'status': 'All the data cleared'})
 
 @app.route('/dhcp_pool', methods=['GET'])
 def dhcp_pool():

@@ -12,9 +12,10 @@ const NetworkSpeedChart = () => {
   const [error, setError] = useState('');
   const [isScanning, setIsScanning] = useState(false);
 
+  const backendUrl = localStorage.getItem('backendUrl');
+  const port = localStorage.getItem('port');
+
   useEffect(() => {
-    const backendUrl = localStorage.getItem('backendUrl');
-    const port = localStorage.getItem('port');
     if (!backendUrl || !port || backendUrl === '' || port === '') {
         setError('Please set backend URL and port in the settings.');
         return;
@@ -53,6 +54,20 @@ const NetworkSpeedChart = () => {
     return () => clearInterval(intervalId);
   }, [isScanning]);
 
+  const clearData = () => {
+    if (window.confirm("Are you sure you want to clear all data? This action cannot be undone.")) {
+      axios.post(`http://${backendUrl}:${port}/clear_data`)
+        .then(response => {
+          alert('All data cleared');
+          setChartData({ datasets: [] });
+        })
+        .catch(error => {
+          console.error('Error clearing data:', error);
+          setError(error.message);
+        });
+    }
+  };
+
   const startScan = () => {
     setIsScanning(true);
     const backendUrl = localStorage.getItem('backendUrl');
@@ -60,7 +75,7 @@ const NetworkSpeedChart = () => {
     axios.post(`http://${backendUrl}:${port}/start_scan`)
       .catch(err => {
         setError(err.message);
-        setIsScanning(false); // Set this to false if there is an error starting the scan
+        setIsScanning(false); 
       });
   };
 
@@ -107,6 +122,7 @@ const NetworkSpeedChart = () => {
       <div className="d-flex justify-content-center">
         <Button onClick={startScan} disabled={isScanning} className="mr-2">Start Scan</Button>
         <Button onClick={stopScan} disabled={!isScanning}>Stop Scan</Button>
+        <Button onClick={clearData} disabled={isScanning} className="mr-2">Clear All Data</Button>
       </div>
       <Line data={chartData} options={options} />
       {error && <p className="text-danger">{error}</p>}
