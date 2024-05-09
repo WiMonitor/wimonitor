@@ -120,8 +120,9 @@ const DhcpInfo = () => {
               dhcpPool['usage'] === "Normal" ? 'card card-success' : 'card card-warning'
             }>
               <h3>Usage: {dhcpPool['usage']}</h3>
-              <h1>{dhcpPool['scanned']-dhcpPool['up']}/{dhcpPool['scanned']}</h1>
-              <h4>Available</h4>
+              <h1>{dhcpPool['up']}/{dhcpPool['scanned']}</h1>
+              <h4>Used ({(parseInt(dhcpPool['up'])/parseInt(dhcpPool['scanned'])*100).toFixed(2)}%)</h4>
+              
               <p>Time Spend: {dhcpPool['time']}s</p>
             </div>
             <br />
