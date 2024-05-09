@@ -12,8 +12,9 @@ from bson.json_util import dumps
 
 import config
 from dhcp import scan_dhcp_pool, get_lease_info
-from dns2 import test_local_dns_servers, get_local_dns_servers, test_dns_connectivity
+from dns2 import get_local_dns_servers, test_dns_connectivity
 from ntp import test_local_ntp_servers, test_ntp_servers
+from quality import *
 
 from flask import Flask, jsonify, request
 from flask_cors import CORS
@@ -135,6 +136,19 @@ def ping_status():
     status_dict['ping_addr'] = last_scan_addr
     status_dict['ping_interval'] = last_scan_interval
     return jsonify(status_dict)
+
+
+@app.route('/nearby_networks', methods=['POST'])
+def scan_ap():
+    target_ssid = None if request.json.get('target_ssid') == '' else request.json.get('target_ssid')
+    result = scan_networks(target_ssid)
+    return jsonify(result)
+
+
+@app.route('/current_network', methods=['GET'])
+def current_connected():
+    return jsonify(get_current_connected())
+    
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0')

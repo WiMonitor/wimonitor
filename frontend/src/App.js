@@ -23,7 +23,7 @@ function App() {
         <ul className={isNavCollapsed ? "collapsed" : ""}>
             <li><Link to="/">Home</Link></li>
             <li><Link to="/quality">WiFi Quality</Link></li>
-            <li><Link to="/speedtest">Speedtest</Link></li>
+            <li><Link to="/speedtest">Speed</Link></li>
             <li><Link to="/ping">Ping</Link></li>
             <li><Link to="/dhcp_pool">DHCP</Link></li>
             <li><Link to="/ntp-sources">NTP</Link></li> 
