@@ -7,6 +7,7 @@ import DhcpInfo from './DhcpInfo.jsx';
 import Quality from './Quality.jsx'; 
 import NTPSources from './NTPSources.jsx';
 import DNSLookup from './DNSLookup.jsx'; 
+import Speedtest from './Speedtest.jsx';
 
 function App() {
   const [isNavCollapsed, setIsNavCollapsed] = useState(true);
@@ -21,20 +22,22 @@ function App() {
         <nav>
         <ul className={isNavCollapsed ? "collapsed" : ""}>
             <li><Link to="/">Home</Link></li>
-            <li><Link to="/quality">Quality</Link></li>
-            <li><Link to="/network-speed">Ping</Link></li>
+            <li><Link to="/quality">WiFi Quality</Link></li>
+            <li><Link to="/speedtest">Speedtest</Link></li>
+            <li><Link to="/ping">Ping</Link></li>
             <li><Link to="/dhcp_pool">DHCP</Link></li>
             <li><Link to="/ntp-sources">NTP</Link></li> 
             <li><Link to="/dns-lookup">DNS</Link></li> 
           </ul>
         </nav>
         <Routes>
-          <Route path="/network-speed" element={<NetworkSpeedChart />} />
+          <Route path="/ping" element={<NetworkSpeedChart />} />
           <Route path="/dhcp_pool" element={<DhcpInfo />} />
           <Route path="/quality" element={<Quality />} />
           <Route path="/ntp-sources" element={<NTPSources />} />
           <Route path="/dns-lookup" element={<DNSLookup />} /> 
           <Route path="/" element={<Home />} />
+          <Route path="/speedtest" element={<Speedtest />} />
         </Routes>
       </div>
     </Router>
