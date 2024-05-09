@@ -1,5 +1,0 @@
-2024-04-08 10:56:11 - Average network speed: 14.081 ms, DHCP Lease Time: 14400
-
-2024-04-08 10:56:28 - Average network speed: 15.97 ms, DHCP Lease Time: 14400
-
-2024-04-08 10:56:44 - Average network speed: 16.134 ms, DHCP Lease Time: 14400
