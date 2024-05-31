@@ -1,28 +1,35 @@
-import wifi, subprocess, re
+import subprocess
+import re
 import config
 
 def scan_networks(target_ssid=None):
-    scan_result = wifi.Cell.all(config.selected_interface)
-    current_mac = get_current_connected('mac')
+    # Use iwlist to scan for networks
+    try:
+        scan_output = subprocess.check_output(['sudo', 'iwlist', config.selected_interface, 'scan'], text=True)
+    except subprocess.CalledProcessError:
+        print("Failed to scan WiFi networks.")
+        return None
+    
+    networks = re.findall(r"Cell \d+ - Address: (\S+).*?ESSID:\"(.*?)\".*?Quality=(\d+/\d+).*?Signal level=(\S+ dBm).*?Frequency:(\S+ GHz).*?Channel:(\d+).*?Mode:(\S+).*?Encryption key:(\S+)", scan_output, re.S)
     result = {}
     
-    for cell in scan_result:
-        if target_ssid is not None and cell.ssid != target_ssid:
+    # Filter by target SSID if specified
+    for address, ssid, quality, signal, frequency, channel, mode, encryption in networks:
+        if target_ssid is not None and ssid != target_ssid:
             continue
-        result[cell.address] = {
-            'ssid': cell.ssid,
-            'signal': cell.signal,
-            'quality': cell.quality,
-            'frequency': cell.frequency,
-            'channel': cell.channel,
-            'address': cell.address,
-            'mode': cell.mode,
-            'encryption': cell.encryption_type,
-            'connected': cell.address == current_mac if current_mac else 'N/A'
+        result[address] = {
+            'ssid': ssid,
+            'signal': signal,
+            'quality': quality,
+            'frequency': frequency,
+            'channel': channel,
+            'address': address,
+            'mode': mode,
+            'encryption': encryption,
+            'connected': address == get_current_connected('mac')
         }
         
     return result
-
 
 def get_current_connected(type='all'):
     try:
@@ -30,7 +37,7 @@ def get_current_connected(type='all'):
     except subprocess.CalledProcessError:
         print("Failed to get WiFi connection details.")
         return None
-    
+
     if type == 'all':
         result = {}
         result['bssid'] = re.search(r"((?:[0-9a-fA-F]:?){12})", iw_output).group(0).upper()
@@ -41,7 +48,6 @@ def get_current_connected(type='all'):
         return result
         
     elif type == 'mac':
-        mac_addr=re.search(r"((?:[0-9a-fA-F]:?){12})", iw_output).group(0).upper()
+        mac_addr = re.search(r"((?:[0-9a-fA-F]:?){12})", iw_output).group(0).upper()
         return mac_addr
-    
 

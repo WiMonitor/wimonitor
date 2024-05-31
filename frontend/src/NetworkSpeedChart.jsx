@@ -13,9 +13,25 @@ const NetworkSpeedChart = () => {
   const [isScanning, setIsScanning] = useState(false);
   const [pingAddr, setPingAddr] = useState('');
   const [pingInterval, setPingInterval] = useState(5); // 10 seconds
+  const [latitude, setLatitude] = useState(null);
+  const [longitude, setLongitude] = useState(null);
+
 
   const backendUrl = localStorage.getItem('backendUrl');
   const port = localStorage.getItem('port');
+
+  useEffect(() => {
+    navigator.geolocation.getCurrentPosition(
+        position => {
+            setLatitude(position.coords.latitude);
+            setLongitude(position.coords.longitude);
+        },
+        error => {
+            setError('Failed to retrieve location: ' + error.message);
+        }
+    );
+}, []);
+
 
 
   useEffect(() => {
@@ -97,7 +113,12 @@ const NetworkSpeedChart = () => {
     setIsScanning(true);
     const backendUrl = localStorage.getItem('backendUrl');
     const port = localStorage.getItem('port');
-    axios.post(`http://${backendUrl}:${port}/start_scan`, { 'ping_addr':pingAddr, 'ping_interval':pingInterval })
+    axios.post(`http://${backendUrl}:${port}/start_scan`, { 
+      'ping_addr':pingAddr, 
+      'ping_interval':pingInterval,
+      'latitude': latitude,  
+      'longitude': longitude 
+    })
       .catch(err => {
         setError(err.message);
         setIsScanning(false); 
@@ -144,6 +165,8 @@ const NetworkSpeedChart = () => {
   return (
     <div>
       <h2 style={{ fontFamily: "'Roboto Mono', sans-serif", textAlign: 'center'}}>Ping</h2>
+      <p>Latitude: {latitude}</p>
+      <p>Longitude: {longitude}</p>
       <div style={{display:'flex'}}>
         {/* add a input for the ping addr */}
         <Form.Label>Address</Form.Label>
@@ -163,3 +186,4 @@ const NetworkSpeedChart = () => {
 };
 
 export default NetworkSpeedChart;
+

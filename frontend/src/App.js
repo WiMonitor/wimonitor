@@ -8,6 +8,7 @@ import Quality from './Quality.jsx';
 import NTPSources from './NTPSources.jsx';
 import DNSLookup from './DNSLookup.jsx'; 
 import Speedtest from './Speedtest.jsx';
+import Geolocation from './Geolocation';
 
 function App() {
   const [isNavCollapsed, setIsNavCollapsed] = useState(true);
@@ -47,7 +48,10 @@ function App() {
 function Home() {
   const [backendUrl, setBackendUrl] = useState('');
   const [port, setPort] = useState('');
-  
+
+  const handleLocationFetch = (location) => {
+    console.log("Location fetched:", location);
+};
   
   const handleSubmit = (e) => {
     localStorage.setItem('backendUrl', backendUrl);
@@ -59,6 +63,7 @@ function Home() {
     <div className="container mt-4">
       <h1 className="mb-3" style={{ fontFamily: "'Roboto Mono', sans-serif" }}>Welcome to the Network Monitoring App</h1>
       <p className="mb-4">Select a page from the menu above to get started.</p>
+      <Geolocation onLocationFetch={handleLocationFetch} /> 
       <form onSubmit={handleSubmit} className="mb-3">
         <div className="row g-3 align-items-center justify-content-center">
           <div className="col-auto">
@@ -102,3 +107,4 @@ function Home() {
 }
 
 export default App;
+
