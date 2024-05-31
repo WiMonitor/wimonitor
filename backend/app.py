@@ -35,6 +35,9 @@ def local_dns_servers():
 
 def ping_network(duration, host):
     try:
+        if not host:
+            print("No host specified for ping.")
+            return None
         ping_cmd = f"ping -c {duration} {host}"
         output = subprocess.check_output(ping_cmd, shell=True).decode('utf-8')
         match = re.search(r'rtt min/avg/max/mdev = (.*)/(.*)/(.*)/(.*) ms', output)
@@ -48,19 +51,23 @@ def ping_network(duration, host):
     return None
 
 
-def scan_and_log(ping_addr="google.com", ping_interval=5):
+def scan_and_log(ping_addr="google.com", ping_interval=5, latitude=None, longitude=None):
     global scanning
-    while scanning:
+    if not ping_addr:
+        print("Invalid ping address provided.")
+        return
         
+    while scanning:
         avg_speed = ping_network(ping_interval, ping_addr)
         timestamp = datetime.datetime.now()
         if avg_speed is not None:
-            db.network_speed.insert_one({
+            db_entry = {
                 'speed': avg_speed, 
                 'timestamp': timestamp,
-                'latitude': latitude,
+                'latitude': latitude,  
                 'longitude': longitude
-                })  
+            }
+            db.network_speed.insert_one(db_entry)
             
 @app.route('/network_speed', methods=['POST'])
 def network_control():
@@ -77,17 +84,22 @@ def network_control():
 @app.route('/start_scan', methods=['POST'])
 def start_scan():
     global scanning, last_scan_addr, last_scan_interval
+   # print(f"Received data: {request.json}") 
     ping_address = request.json.get('ping_addr') 
     ping_interval = request.json.get('ping_interval')
     latitude = request.json.get('latitude')
     longitude = request.json.get('longitude')
+    print(f"Latitude: {latitude}, Longitude: {longitude}")  
+
+    if not ping_address:  
+        return jsonify({'status': 'Error', 'message': 'No ping address provided'}), 400
 
     last_scan_addr = ping_address
     last_scan_interval = ping_interval
 
     if not scanning:
         scanning = True
-        Thread(target=scan_and_log, args=(ping_address,ping_interval)).start()
+        Thread(target=scan_and_log, args=(ping_address, ping_interval, latitude, longitude)).start()
     return jsonify({'status': 'Scanning started'})
 
 @app.route('/stop_scan', methods=['POST'])
