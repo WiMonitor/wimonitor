@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Chart, registerables } from 'chart.js';
 import { Line } from 'react-chartjs-2';
@@ -11,11 +11,10 @@ const NetworkSpeedChart = () => {
   const [chartData, setChartData] = useState({ datasets: [] });
   const [error, setError] = useState('');
   const [isScanning, setIsScanning] = useState(false);
-  const [pingAddr, setPingAddr] = useState('google.com');
-  const [pingInterval, setPingInterval] = useState(5); 
+  const [pingAddr, setPingAddr] = useState('');
+  const [pingInterval, setPingInterval] = useState(5); // 10 seconds
   const [latitude, setLatitude] = useState(null);
   const [longitude, setLongitude] = useState(null);
-  const positionRef = useRef({ latitude: null, longitude: null });
 
 
   const backendUrl = localStorage.getItem('backendUrl');
@@ -26,7 +25,6 @@ const NetworkSpeedChart = () => {
         position => {
             setLatitude(position.coords.latitude);
             setLongitude(position.coords.longitude);
-            console.log(`Location set: Latitude ${position.coords.latitude}, Longitude ${position.coords.longitude}`);
         },
         error => {
             setError('Failed to retrieve location: ' + error.message);
@@ -43,6 +41,7 @@ const NetworkSpeedChart = () => {
     }
     axios.get(`http://${backendUrl}:${port}/ping_status`)
       .then(response => {
+        console.log(response.data);
         setIsScanning(response.data.scanning);
         if (response.data.scanning) {
           setPingAddr(response.data.ping_addr);
@@ -55,37 +54,6 @@ const NetworkSpeedChart = () => {
       });
   }, []);
 
-  useEffect(() => {
-    let watchId = null;
-    const updatePosition = () => {
-        setLatitude(positionRef.current.latitude);
-        setLongitude(positionRef.current.longitude);
-    };
-
-    if (navigator.geolocation) {
-        watchId = navigator.geolocation.watchPosition(
-            position => {
-                positionRef.current = {
-                    latitude: position.coords.latitude,
-                    longitude: position.coords.longitude
-                };
-            },
-            error => {
-                setError('Failed to retrieve location: ' + error.message);
-            },
-            { enableHighAccuracy: true, timeout: 10000, maximumAge: 1000 }
-        );
-
-        const intervalId = setInterval(updatePosition, 5000); // Update every 5 seconds
-
-        return () => {
-            clearInterval(intervalId);
-            if (watchId !== null) {
-                navigator.geolocation.clearWatch(watchId);
-            }
-        };
-    }
-}, []);
 
 
   useEffect(() => {
@@ -100,12 +68,10 @@ const NetworkSpeedChart = () => {
             setChartData({
               datasets: [
                 {
-                  label: 'Network Latency',
+                  label: 'Network Speed',
                   data: response.data.network_speed.map(item => ({
                     x: new Date(item.timestamp), 
                     y: item.speed,
-                    lat: item.latitude,
-                    lng: item.longitude  
                   })),
                   fill: false,
                   borderColor: 'rgb(75, 192, 192)',
@@ -147,15 +113,11 @@ const NetworkSpeedChart = () => {
     setIsScanning(true);
     const backendUrl = localStorage.getItem('backendUrl');
     const port = localStorage.getItem('port');
-    console.log(`Sending request to ${backendUrl}:${port} with address ${pingAddr}, latitude: ${latitude}, longitude: ${longitude}`);
     axios.post(`http://${backendUrl}:${port}/start_scan`, { 
       'ping_addr':pingAddr, 
       'ping_interval':pingInterval,
       'latitude': latitude,  
       'longitude': longitude 
-    })
-    .then(response => {
-     // console.log('Scan started:', response.data);
     })
       .catch(err => {
         setError(err.message);
@@ -194,23 +156,6 @@ const NetworkSpeedChart = () => {
       }
     },
     plugins: {
-      tooltip: {
-        callbacks: {
-          label: function(context) {
-            let label = context.dataset.label || '';
-            if (label) {
-              label += ': ';
-            }
-            if (context.raw.y != null) {
-              label += `${context.raw.y} ms`;
-            }
-            if (context.raw.lat && context.raw.lng) {
-              label += `\nLat: ${context.raw.lat.toFixed(5)}, Lng: ${context.raw.lng.toFixed(5)}`;
-            }
-            return label;
-          }
-        }
-      },
       legend: {
         display: false
       }
