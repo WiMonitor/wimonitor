@@ -37,6 +37,7 @@ const Quality = () => {
     }
     axios.post(`http://${backendUrl}:${port}/nearby_networks`, {target_ssid: targetSSID})
       .then(response => {
+        console.log('NearBY',response.data)
         setNearbyNetworks(response.data);
       })
       .catch(error => {
@@ -80,18 +81,6 @@ const Quality = () => {
               </tr>
             </thead>
             <tbody>
-              {Object.keys(nearbyNetworks).map(key => (
-                <tr key={key}>
-                  <td style={isCurrentNetwork(key)}>{nearbyNetworks[key].ssid}</td>
-                  <td style={isCurrentNetwork(key)}>{nearbyNetworks[key].address}</td>
-                  <td style={isCurrentNetwork(key)}>{nearbyNetworks[key].signal}</td>
-                  <td style={isCurrentNetwork(key)}>{nearbyNetworks[key].quality}</td>
-                  <td style={isCurrentNetwork(key)}>{nearbyNetworks[key].frequency}</td>
-                  <td style={isCurrentNetwork(key)}>{nearbyNetworks[key].channel}</td>
-                  <td style={isCurrentNetwork(key)}>{nearbyNetworks[key].mode}</td>
-                  <td style={isCurrentNetwork(key)}>{nearbyNetworks[key].encryption}</td>
-                </tr>
-              ))}
             </tbody>
           </Table>
           )

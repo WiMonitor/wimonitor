@@ -14,7 +14,7 @@ import config
 from dhcp import scan_dhcp_pool, get_lease_info
 from dns2 import get_local_dns_servers, test_dns_connectivity
 from ntp import test_local_ntp_servers, test_ntp_servers
-from quality import *
+from quality import scan_networks,get_current_connected
 
 from flask import Flask, jsonify, request
 from flask_cors import CORS
@@ -55,7 +55,12 @@ def scan_and_log(ping_addr="google.com", ping_interval=5):
         avg_speed = ping_network(ping_interval, ping_addr)
         timestamp = datetime.datetime.now()
         if avg_speed is not None:
-            db.network_speed.insert_one({'speed': avg_speed, 'timestamp': timestamp})  
+            db.network_speed.insert_one({
+                'speed': avg_speed, 
+                'timestamp': timestamp,
+                'latitude': latitude,
+                'longitude': longitude
+                })  
             
 @app.route('/network_speed', methods=['POST'])
 def network_control():
@@ -74,6 +79,9 @@ def start_scan():
     global scanning, last_scan_addr, last_scan_interval
     ping_address = request.json.get('ping_addr') 
     ping_interval = request.json.get('ping_interval')
+    latitude = request.json.get('latitude')
+    longitude = request.json.get('longitude')
+
     last_scan_addr = ping_address
     last_scan_interval = ping_interval
 
