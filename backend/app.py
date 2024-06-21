@@ -87,7 +87,7 @@ def scan_and_log(ping_addr="google.com", ping_interval=5):
             
 @app.route('/network_speed', methods=['POST'])
 def network_control():
-     """
+    """
     Retrieves network speed data from the database.
     
     Returns:
@@ -129,7 +129,7 @@ def start_scan():
 
 @app.route('/stop_scan', methods=['POST'])
 def stop_scan():
-     """
+    """
     Stops the ongoing network scanning process.
 
     Returns:
@@ -152,7 +152,7 @@ def clear_data():
 
 @app.route('/dhcp_pool', methods=['GET'])
 def dhcp_pool():
-     """
+    """
     Retrieves information about the DHCP pool.
 
     Returns:
@@ -209,7 +209,7 @@ def ntp_test():
 
 @app.route('/ntp_sources', methods=['POST'])
 def customize_ntp_test():
-     """
+    """
     Tests connectivity to custom NTP servers specified in the request.
 
     Request JSON Parameters:
