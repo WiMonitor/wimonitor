@@ -1,123 +1,188 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { FormLabel, Button, FormControl, Table } from 'react-bootstrap';
+import { Chart, registerables } from 'chart.js';
+import { Line } from 'react-chartjs-2';
+import 'chartjs-adapter-date-fns';
+import { Button, Form } from 'react-bootstrap';
 
-const Quality = () => {
-  const [currentNetwork, setCurrentNetwork] = useState({});
-  const [currentNetworkError, setCurrentNetworkError] = useState('');
-  const [nearbyNetworks, setNearbyNetworks] = useState({});
-  const [nearbyNetworksError, setNearbyNetworksError] = useState('');
-  const [targetSSID, setTargetSSID] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+Chart.register(...registerables);
+
+const NetworkSpeedChart = () => {
+  const [chartData, setChartData] = useState({ datasets: [] });
+  const [error, setError] = useState('');
+  const [isScanning, setIsScanning] = useState(false);
+  const [pingAddr, setPingAddr] = useState('');
+  const [pingInterval, setPingInterval] = useState(5); // 10 seconds
+  const [latitude, setLatitude] = useState(null);
+  const [longitude, setLongitude] = useState(null);
+
 
   const backendUrl = localStorage.getItem('backendUrl');
   const port = localStorage.getItem('port');
 
   useEffect(() => {
-    console.log('Component mounted. Starting to fetch current network.');
+    navigator.geolocation.getCurrentPosition(
+        position => {
+            setLatitude(position.coords.latitude);
+            setLongitude(position.coords.longitude);
+        },
+        error => {
+            setError('Failed to retrieve location: ' + error.message);
+        }
+    );
+}, []);
+
+
+
+  useEffect(() => {
     if (!backendUrl || !port || backendUrl === '' || port === '') {
-      console.error('Backend URL or port not set.');
-      setCurrentNetworkError('Please set backend URL and port in the settings.');
-      return;
+        setError('Please set backend URL and port in the settings.');
+        return;
     }
-    axios.get(`http://${backendUrl}:${port}/current_network`)
+    axios.get(`http://${backendUrl}:${port}/ping_status`)
       .then(response => {
-        console.log('Received current network data:', response.data);
-        setCurrentNetwork(response.data);
-        setTargetSSID(response.data.ssid);
+        console.log(response.data);
+        setIsScanning(response.data.scanning);
+        if (response.data.scanning) {
+          setPingAddr(response.data.ping_addr);
+          setPingInterval(response.data.ping_interval);
+        }
       })
       .catch(error => {
-        console.error('Error fetching current network:', error);
-        setCurrentNetworkError('Failed to fetch current network. Error: ' + error.message);
+        console.error('Error fetching scan status:', error);
+        setError(error.message);
       });
-  }, [backendUrl, port]);
+  }, []);
 
-  const fetchNearbyNetworks = () => {
-    console.log('Fetching nearby networks.');
-    setNearbyNetworksError('');
-    setNearbyNetworks({});
+
+
+  useEffect(() => {
     if (!backendUrl || !port || backendUrl === '' || port === '') {
-      console.error('Backend URL or port not set.');
-      setNearbyNetworksError('Please set backend URL and port in the settings.');
-      return;
+        setError('Please set backend URL and port in the settings.');
+        return;
     }
-    setIsLoading(true);
-    axios.post(`http://${backendUrl}:${port}/nearby_networks`, { target_ssid: targetSSID })
-      .then(response => {
-        console.log('Nearby networks data received:', response.data);
-        setNearbyNetworks(response.data);
-        setIsLoading(false);
-      })
-      .catch(error => {
-        console.error('Error fetching nearby networks:', error);
-        setNearbyNetworksError('Failed to fetch nearby networks. Error: ' + error.message);
-        setIsLoading(false);
-      });
-  }
+    const fetchSpeedData = () => {
+      axios.post(`http://${backendUrl}:${port}/network_speed`)
+        .then(response => {
+          if (response.data && Array.isArray(response.data.network_speed)) {
+            setChartData({
+              datasets: [
+                {
+                  label: 'Network Speed',
+                  data: response.data.network_speed.map(item => ({
+                    x: new Date(item.timestamp), 
+                    y: item.speed,
+                  })),
+                  fill: false,
+                  borderColor: 'rgb(75, 192, 192)',
+                  tension: 0.1
+                }
+              ]
+            });
+          }
+        })
+        .catch(error => {
+          console.error('Error fetching data:', error);
+          setError(error.message);
+        });
+    };
 
-  const isCurrentNetwork = (key) => {
-    if (key == currentNetwork.bssid) {
-      return {'background-color': '#D4EEDA'}
+    let intervalId;
+    if (isScanning) {
+      fetchSpeedData();
+      intervalId = setInterval(fetchSpeedData, pingInterval*1000);
     }
-    else
-      return {}
-  }
+    return () => clearInterval(intervalId);
+  }, [isScanning]);
+
+  const clearData = () => {
+    if (window.confirm("Are you sure you want to clear all data? This action cannot be undone.")) {
+      axios.post(`http://${backendUrl}:${port}/clear_data`)
+        .then(response => {
+          alert('All data cleared');
+          setChartData({ datasets: [] });
+        })
+        .catch(error => {
+          console.error('Error clearing data:', error);
+          setError(error.message);
+        });
+    }
+  };
+
+  const startScan = () => {
+    setIsScanning(true);
+    const backendUrl = localStorage.getItem('backendUrl');
+    const port = localStorage.getItem('port');
+    axios.post(`http://${backendUrl}:${port}/start_scan`, { 
+      'ping_addr':pingAddr, 
+      'ping_interval':pingInterval,
+      'latitude': latitude,  
+      'longitude': longitude 
+    })
+      .catch(err => {
+        setError(err.message);
+        setIsScanning(false); 
+      });
+  };
+
+  const stopScan = () => {
+    const backendUrl = localStorage.getItem('backendUrl');
+    const port = localStorage.getItem('port');
+    axios.post(`http://${backendUrl}:${port}/stop_scan`)
+      .then(() => setIsScanning(false))
+      .catch(err => {
+        setError(err.message);
+      });
+  };
+
+  const options = {
+    scales: {
+      x: {
+        type: 'time',
+        time: {
+          unit: 'hour',
+          tooltipFormat: 'MMM d, h:mm a',
+        },
+        title: {
+          display: true,
+          text: 'Time'
+        }
+      },
+      y: {
+        title: {
+          display: true,
+          text: 'Latency (ms)'
+        }
+      }
+    },
+    plugins: {
+      legend: {
+        display: false
+      }
+    }
+  };
 
   return (
-    <div className='page-container'>
-      <div style={{ paddingRight: '20px' }}>
-        <h2>Nearby AP</h2>
-        <FormLabel>Target SSID</FormLabel>
-        <FormControl type='text' value={targetSSID} onChange={e => setTargetSSID(e.target.value)} />
-        <Button onClick={fetchNearbyNetworks} className='btn-success'>Scan</Button>
-        {isLoading ? <p>Loading...</p> : (
-          <div>
-            {nearbyNetworks && Object.keys(nearbyNetworks).length > 0 ? (
-              <Table striped bordered hover>
-                <thead>
-                  <tr>
-                    <th>SSID</th>
-                    <th>MAC</th>
-                    <th>Signal</th>
-                    <th>Quality</th>
-                    <th>Frequency</th>
-                    <th>Channel</th>
-                    <th>Mode</th>
-                    <th>Encryption</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {Object.entries(nearbyNetworks).map(([key, network]) => (
-                    <tr key={key} style={isCurrentNetwork(key)}>
-                      <td>{network.ssid}</td>
-                      <td>{network.address}</td>
-                      <td>{network.signal}</td>
-                      <td>{network.quality}</td>
-                      <td>{network.frequency}</td>
-                      <td>{network.channel}</td>
-                      <td>{network.mode}</td>
-                      <td>{network.encryption}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </Table>
-            ) : <p>No nearby networks found or error occurred.</p>}
-          </div>
-        )}
+    <div>
+      <h2 style={{ fontFamily: "'Roboto Mono', sans-serif", textAlign: 'center'}}>Ping</h2>
+      <p>Latitude: {latitude}</p>
+      <p>Longitude: {longitude}</p>
+      <div style={{display:'flex'}}>
+        {/* add a input for the ping addr */}
+        <Form.Label>Address</Form.Label>
+        <Form.Control type="text" placeholder="Enter the address to ping, google.com if empty" value={pingAddr} onChange={e => setPingAddr(e.target.value)} />
+        <Form.Label>Interval (seconds)</Form.Label>
+        <Form.Control type="number" placeholder="" value={pingInterval} onChange={e => setPingInterval(e.target.value)} />
       </div>
-      <div style={{ justifyContent: 'flex-end' }}>
-        <h2>Current AP</h2>
-        <div className='card card-success'>
-          <h2>{currentNetwork.ssid}</h2>
-          <p>MAC: {currentNetwork.bssid}</p>
-          <p>Signal Strength: {currentNetwork.signal}</p>
-          <p>TX Rate: {currentNetwork.tx}</p>
-          <p>RX Rate: {currentNetwork.rx}</p>
-        </div>
-        {currentNetworkError && <p className='error'>{currentNetworkError}</p>}
+      <div className="d-flex justify-content-center">
+        <Button onClick={startScan} disabled={isScanning} className="mr-2 btn-success">Start Monitor</Button>
+        <Button onClick={stopScan} disabled={!isScanning}>Stop Monitor</Button>
+        <Button onClick={clearData} disabled={isScanning} className="mr-2 btn-danger">Clear All Data</Button>
       </div>
+      <Line data={chartData} options={options} />
+      {error && <p className="text-danger">{error}</p>}
     </div>
   );
 };
 
-export default Quality;
+export default NetworkSpeedChart;
