@@ -119,6 +119,7 @@ def start_scan():
     ping_address = request.json.get('ping_addr') 
     ping_interval = request.json.get('ping_interval')
 
+
     last_scan_addr = ping_address
     last_scan_interval = ping_interval
 

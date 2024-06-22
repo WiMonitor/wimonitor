@@ -44,7 +44,6 @@ const Quality = () => {
     setIsLoading(true);
     axios.post(`http://${backendUrl}:${port}/nearby_networks`, { target_ssid: targetSSID })
       .then(response => {
-        console.log('Nearby networks data received:', response.data);
         setNearbyNetworks(response.data);
         setIsLoading(false);
       })
@@ -104,6 +103,7 @@ const Quality = () => {
             ) : <p>No nearby networks found or error occurred.</p>}
           </div>
         )}
+
       </div>
       <div style={{ justifyContent: 'flex-end' }}>
         <h2>Current AP</h2>
