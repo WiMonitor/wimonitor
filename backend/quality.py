@@ -28,7 +28,8 @@ def scan_networks(target_ssid=None):
             'encryption': encryption,
             'connected': address == get_current_connected('mac')
         }
-        
+    
+    print("Finished processing network scan results.")
     return result
 
 def get_current_connected(type='all'):
