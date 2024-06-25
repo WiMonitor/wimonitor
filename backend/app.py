@@ -80,9 +80,7 @@ def scan_and_log(ping_addr="google.com", ping_interval=5):
         if avg_speed is not None:
             db.network_speed.insert_one({
                 'speed': avg_speed, 
-                'timestamp': timestamp,
-                'latitude': latitude,
-                'longitude': longitude
+                'timestamp': timestamp
                 })  
             
 @app.route('/network_speed', methods=['POST'])
