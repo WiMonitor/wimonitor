@@ -9,6 +9,8 @@ import time
 import shlex
 import socket
 from bson.json_util import dumps
+from hashlib import sha256
+import os
 
 import config
 from dhcp import scan_dhcp_pool, get_lease_info
@@ -220,6 +222,29 @@ def customize_ntp_test():
     ntp_results = test_ntp_servers(servers)
     return jsonify(ntp_results)
 
+def log_ntp_results(ntp_results):
+    """Log NTP test results to MongoDB."""
+    db.ntp_changes.insert_one({
+        'timestamp': datetime.datetime.now(),
+        'results': ntp_results,
+        'description': 'Regular NTP test'
+    })
+
+@app.route('/ntp_changes', methods=['GET'])
+def get_ntp_changes():
+    """Retrieve NTP configuration changes from the last 24 hours."""
+    now = datetime.datetime.now()
+    start_time = now - datetime.timedelta(hours=24)
+    changes = list(db.ntp_changes.find({'timestamp': {'$gte': start_time}}, {'_id': 0}))
+    for change in changes:
+        if 'timestamp' in change:
+            change['timestamp'] = change['timestamp'].isoformat()
+    return jsonify({'ntp_changes': changes})
+
+def cleanup_old_entries():
+    """Remove entries older than 24 hours."""
+    threshold_time = datetime.datetime.now() - datetime.timedelta(hours=24)
+    db.ntp_changes.delete_many({'timestamp': {'$lt': threshold_time}})
 
 @app.route('/ping_status', methods=['GET'])
 def ping_status():
