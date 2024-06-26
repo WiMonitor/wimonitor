@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { FormLabel, Button, FormControl, Table } from 'react-bootstrap';
+import SignalStrengthChart from './SignalStrengthChart';
 
 const Quality = () => {
   const [currentNetwork, setCurrentNetwork] = useState({});
@@ -9,6 +10,9 @@ const Quality = () => {
   const [nearbyNetworksError, setNearbyNetworksError] = useState('');
   const [targetSSID, setTargetSSID] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [showChart, setShowChart] = useState(false);
+  const [isClearing, setIsClearing] = useState(false);
+
 
   const backendUrl = localStorage.getItem('backendUrl');
   const port = localStorage.getItem('port');
@@ -30,7 +34,48 @@ const Quality = () => {
         console.error('Error fetching current network:', error);
         setCurrentNetworkError('Failed to fetch current network. Error: ' + error.message);
       });
+
+         // Start signal scanning
+    startSignalScanning();
   }, [backendUrl, port]);
+
+  
+  const startSignalScanning = () => {
+    console.log('Starting signal scanning.');
+    axios.post(`http://${backendUrl}:${port}/start_signal_monitoring`)
+      .then(response => {
+        console.log('Signal scanning started:', response.data);
+      })
+      .catch(error => {
+        console.error('Error starting signal scanning:', error);
+      });
+  };
+
+  const stopSignalScanning = () => {
+    console.log('Stopping signal scanning.');
+    axios.post(`http://${backendUrl}:${port}/stop_signal_monitoring`)
+      .then(response => {
+        console.log('Signal scanning stopped:', response.data);
+      })
+      .catch(error => {
+        console.error('Error stopping signal scanning:', error);
+      });
+  };
+
+  const handleClearData = () => {
+    setIsClearing(true);
+    axios.post(`http://${backendUrl}:${port}/clear_signal_data`)
+      .then(response => {
+        console.log('Data cleared:', response.data);
+        setIsClearing(false);
+        alert('Signal data cleared successfully!');
+      })
+      .catch(error => {
+        console.error('Error clearing signal data:', error);
+        setIsClearing(false);
+        alert('Failed to clear signal data.');
+      });
+  };
 
   const fetchNearbyNetworks = () => {
     console.log('Fetching nearby networks.');
@@ -44,6 +89,7 @@ const Quality = () => {
     setIsLoading(true);
     axios.post(`http://${backendUrl}:${port}/nearby_networks`, { target_ssid: targetSSID })
       .then(response => {
+        console.log('Nearby networks data received:', response.data);
         setNearbyNetworks(response.data);
         setIsLoading(false);
       })
@@ -56,7 +102,7 @@ const Quality = () => {
 
   const isCurrentNetwork = (key) => {
     if (key == currentNetwork.bssid) {
-      return {'background-color': '#D4EEDA'}
+      return {'backgroundColor': '#D4EEDA'}
     }
     else
       return {}
@@ -69,6 +115,10 @@ const Quality = () => {
         <FormLabel>Target SSID</FormLabel>
         <FormControl type='text' value={targetSSID} onChange={e => setTargetSSID(e.target.value)} />
         <Button onClick={fetchNearbyNetworks} className='btn-success'>Scan</Button>
+        <Button onClick={() => setShowChart(!showChart)} className='btn-info'>
+          {showChart ? 'Hide Signal Strength Chart' : 'Show Signal Strength Chart'}
+        </Button>
+        
         {isLoading ? <p>Loading...</p> : (
           <div>
             {nearbyNetworks && Object.keys(nearbyNetworks).length > 0 ? (
@@ -114,8 +164,15 @@ const Quality = () => {
           <p>TX Rate: {currentNetwork.tx}</p>
           <p>RX Rate: {currentNetwork.rx}</p>
         </div>
+        <Button variant="danger" onClick={handleClearData} disabled={isClearing} className='mb-3'>
+         {isClearing ? 'Clearing...' : 'Clear Signal Strength Chart'}
+        </Button>
         {currentNetworkError && <p className='error'>{currentNetworkError}</p>}
+        <div>
+        {showChart && <SignalStrengthChart backendUrl={backendUrl} port={port} currentNetwork={currentNetwork}/>}
+        </div>
       </div>
+     
     </div>
   );
 };

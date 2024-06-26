@@ -98,6 +98,4 @@ def get_lease_info():
         lease_info_dict["status"] = "Rebinding"
     else:
         lease_info_dict["status"] = "Active"
-
-    print(lease_info_dict)
     return lease_info_dict

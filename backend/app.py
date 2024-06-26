@@ -117,7 +117,6 @@ def start_scan():
     ping_address = request.json.get('ping_addr') 
     ping_interval = request.json.get('ping_interval')
 
-
     last_scan_addr = ping_address
     last_scan_interval = ping_interval
 
@@ -262,7 +261,105 @@ def current_connected():
         json: A JSON object containing details of the currently connected network.
     """
     return jsonify(get_current_connected())
-    
+
+def fetch_ap_details():
+    """
+    Use wpa_cli to scan and fetch details of all visible networks.
+    """
+    try:
+        # Using wpa_cli to scan and get results
+        subprocess.run(["wpa_cli", "-i", config.selected_interface, "scan"], check=True)
+        time.sleep(2)
+        scan_output = subprocess.check_output(["wpa_cli", "-i", config.selected_interface, "scan_results"], text=True)
+       # print("Current status output:", status_output)  
+
+        ap_details = []
+        for line in scan_output.splitlines():
+            if re.match(r"bssid / frequency / signal level / flags / ssid", line):
+                continue 
+            parts = line.split()
+            if len(parts) >= 5:
+                ap_details.append({
+                    'bssid': parts[0],
+                    'frequency': parts[1],
+                    'signal': parts[2],
+                    'flags': parts[3],
+                    'ssid': ' '.join(parts[4:])
+                })
+        return ap_details
+    except subprocess.CalledProcessError:
+        print("Failed to fetch AP details.")
+        return []
+
+def get_min_signal(ap_details):
+    """
+    Extract the minimum signal strength from the list of access points.
+    """
+    if not ap_details:
+        return None
+    return min(ap_details, key=lambda x: x['signal'])
+
+@app.route('/start_signal_monitoring', methods=['POST'])
+def start_signal_monitoring():
+    global scanning
+    if not scanning:  # Check if scanning is not already running
+        scanning = True
+        thread = Thread(target=monitor_and_log_signal)
+        thread.start()
+        print("reached started")
+        return jsonify({'status': 'Signal monitoring started'})
+        
+    else:
+        print("not reached started")
+        return jsonify({'status': 'Signal monitoring is already active'})
+
+@app.route('/stop_signal_monitoring', methods=['POST'])
+def stop_signal_monitoring():
+    global scanning
+    if scanning:
+        scanning = False
+        return jsonify({'status': 'Signal monitoring stopped'})
+    else:
+        return jsonify({'status': 'Signal monitoring was not active'})
+
+def monitor_and_log_signal():
+    global scanning
+    print(f"Starting monitor_and_log_signal with scanning={scanning}")
+    target_ssid = "Dev"
+    while scanning:
+        ap_details = fetch_ap_details()
+        if ap_details:
+            connected_ap = next((ap for ap in ap_details if ap['ssid'] == target_ssid), None)
+            if connected_ap:
+                insert_result = db.signal_strength_logs.insert_one({
+                    'timestamp': datetime.datetime.now(),
+                    **connected_ap
+                })
+                # print(f"Inserted data: {insert_result.inserted_id}, {connected_ap}")
+        time.sleep(10)  # Interval in seconds between scans
+
+
+@app.route('/signal_strength_data', methods=['GET'])
+def get_signal_strength_data():
+    """ Retrieve signal strength data for all APs, sorted by AP and timestamp """
+    data = []
+    results = db.signal_strength_logs.find().sort('timestamp', 1)
+    results_list = list(results) 
+    for record in results_list:
+        data.append({
+            'timestamp': record['timestamp'].isoformat(),
+            'ssid': record['ssid'],
+            'bssid': record['bssid'],
+            'signal': record['signal']
+        })
+    return jsonify(data)
+
+
+@app.route('/clear_signal_data', methods=['POST'])
+def clear_signal_data():
+    """ Clears all signal strength data from the database. """
+    db.signal_strength_logs.delete_many({})  
+    return jsonify({'status': 'Data cleared successfully'})
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0')
