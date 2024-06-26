@@ -48,13 +48,15 @@ def __get_local_ntp_config__():
         servers (array): An array of NTP servers found in ntp.conf
     """
     servers = []
-    with open(config.NTP_FILE_PATH, 'r') as f:
-        lines = f.readlines()
-        for line in lines:
-            line = line.strip()
-            if line.startswith("pool") or line.startswith("server"):
-                server = line.split()[1]
-                servers.append(server)       
+    try:
+        with open(config.NTP_FILE_PATH, 'r') as f:
+            lines = f.readlines()
+            for line in lines:
+                if line.startswith("pool") or line.startswith("server"):
+                    server = line.split()[1]
+                    servers.append(server)
+    except FileNotFoundError:
+        print("NTP configuration file not found.")
     return servers
 
 
