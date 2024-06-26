@@ -13,6 +13,7 @@ const Quality = () => {
   const [showChart, setShowChart] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
 
+
   const backendUrl = localStorage.getItem('backendUrl');
   const port = localStorage.getItem('port');
 
@@ -33,6 +34,7 @@ const Quality = () => {
         console.error('Error fetching current network:', error);
         setCurrentNetworkError('Failed to fetch current network. Error: ' + error.message);
       });
+
          // Start signal scanning
     startSignalScanning();
   }, [backendUrl, port]);
@@ -151,6 +153,7 @@ const Quality = () => {
             ) : <p>No nearby networks found or error occurred.</p>}
           </div>
         )}
+
       </div>
       <div style={{ justifyContent: 'flex-end' }}>
         <h2>Current AP</h2>
