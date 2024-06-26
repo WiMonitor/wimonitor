@@ -81,5 +81,9 @@ For exisiting features:
 For features we have planned but didn't develop:
 *  Deep packet inspection (Intrusion Protection System)
 *  MTU path discovery
+# Other branches
+- "ping" contains the initial scripts of the app.
+- "all-dockered" contains the docker file for the docker version.
+
 # Credit
  [Speed-Test](https://github.com/openspeedtest/Speed-Test) 
